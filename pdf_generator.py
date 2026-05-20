@@ -55,16 +55,27 @@ def generate_pdf(
         styles['Title']
     )
 
-    header_info = Paragraph(
+    generated_info = Paragraph(
         f"""
-        <para alignment="right">
+        <para alignment="left">
 
         <font size=10 color="#374151">
 
         <b>Generated:</b>
         {datetime.now().strftime("%d %b %Y %I:%M %p")}
 
-        <br/><br/>
+        </font>
+
+        </para>
+        """,
+        styles['BodyText']
+    )
+
+    prepared_by = Paragraph(
+        """
+        <para alignment="right">
+
+        <font size=10 color="#374151">
 
         <b>Prepared By:</b>
         Team Shalini
@@ -76,14 +87,17 @@ def generate_pdf(
         styles['BodyText']
     )
 
-    header_table = Table(
+    top_info_table = Table(
         [
-            [title, header_info]
+            [
+                generated_info,
+                prepared_by
+            ]
         ],
-        colWidths=[320, 150]
+        colWidths=[235, 235]
     )
 
-    header_table.setStyle(TableStyle([
+    top_info_table.setStyle(TableStyle([
 
         (
             'VALIGN',
@@ -94,7 +108,11 @@ def generate_pdf(
 
     ]))
 
-    elements.append(header_table)
+    elements.append(title)
+
+    elements.append(Spacer(1, 8))
+
+    elements.append(top_info_table)
 
     elements.append(Spacer(1, 18))
 
@@ -213,13 +231,13 @@ def generate_pdf(
         f"""
         <para alignment="center">
 
-        <font size=11 color="#2563EB">
+        <font size=10 color="#2563EB">
         <b>TOTAL HOURS</b>
         </font>
 
         <br/><br/>
 
-        <font size=24 color="#111827">
+        <font size=26 color="#111827">
         <b>{total_hours}</b>
         </font>
 
@@ -232,13 +250,13 @@ def generate_pdf(
         f"""
         <para alignment="center">
 
-        <font size=11 color="#059669">
+        <font size=10 color="#059669">
         <b>FINAL AMOUNT</b>
         </font>
 
         <br/><br/>
 
-        <font size=24 color="#111827">
+        <font size=26 color="#111827">
         <b>${total_amount}</b>
         </font>
 
@@ -263,14 +281,14 @@ def generate_pdf(
             'BACKGROUND',
             (0, 0),
             (0, 0),
-            colors.HexColor("#EFF6FF")
+            colors.HexColor("#DBEAFE")
         ),
 
         (
             'BACKGROUND',
             (1, 0),
             (1, 0),
-            colors.HexColor("#ECFDF5")
+            colors.HexColor("#D1FAE5")
         ),
 
         (
@@ -293,14 +311,14 @@ def generate_pdf(
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            20
+            22
         ),
 
         (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            20
+            22
         ),
 
         (

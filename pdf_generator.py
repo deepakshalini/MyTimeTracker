@@ -9,6 +9,7 @@ from reportlab.platypus import (
 
 from reportlab.lib import colors
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from reportlab.lib.styles import (
     getSampleStyleSheet
@@ -102,7 +103,7 @@ def generate_pdf(
         f"""
         <font size=9 color="{TEXT}">
         <b>Generated:</b>
-        {datetime.now().strftime("%d %b %Y %I:%M %p")}
+        {datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y %I:%M %p")}
         </font>
         """,
         styles['BodyText']

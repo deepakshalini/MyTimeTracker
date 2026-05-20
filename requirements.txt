@@ -1,0 +1,6 @@
+streamlit
+pandas
+reportlab
+pyautogui
+pillow
+supabase

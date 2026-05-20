@@ -8,6 +8,8 @@ from reportlab.platypus import (
 )
 
 from reportlab.lib import colors
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from reportlab.lib.styles import (
     getSampleStyleSheet
@@ -21,14 +23,10 @@ from reportlab.platypus.flowables import (
 
 from datetime import datetime
 
-from zoneinfo import ZoneInfo
-
-from pathlib import Path
-
 
 PRIMARY = "#0F766E"
 LIGHT = "#ECFEFF"
-BORDER = "#99D5CF"
+BORDER = "#CFFAFE"
 TEXT = "#111827"
 SUBTEXT = "#4B5563"
 
@@ -62,6 +60,8 @@ def generate_pdf(
     total_hours,
     total_amount
 ):
+
+    # delete previously generated pdf if any.
 
     for pdf in Path(".").glob("*.pdf"):
 
@@ -103,11 +103,7 @@ def generate_pdf(
         f"""
         <font size=9 color="{TEXT}">
         <b>Generated:</b>
-        {
-            datetime.now(
-                ZoneInfo("Asia/Kolkata")
-            ).strftime("%d %b %Y %I:%M %p")
-        }
+        {datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y %I:%M %p")}
         </font>
         """,
         styles['BodyText']
@@ -225,6 +221,13 @@ def generate_pdf(
     client_table.setStyle(TableStyle([
 
         (
+            'BACKGROUND',
+            (0, 0),
+            (0, -1),
+            colors.HexColor(LIGHT)
+        ),
+
+        (
             'BOX',
             (0, 0),
             (-1, -1),
@@ -325,6 +328,13 @@ def generate_pdf(
     )
 
     summary_table.setStyle(TableStyle([
+
+        (
+            'BACKGROUND',
+            (0, 0),
+            (-1, -1),
+            colors.HexColor(LIGHT)
+        ),
 
         (
             'BOX',
@@ -672,7 +682,7 @@ def generate_pdf(
         f"""
         <para alignment="center">
 
-        <font size=8.5 color="{SUBTEXT}">
+        <font size=8 color="{SUBTEXT}">
         Generated using Time Tracker
         •
         Developed by Deepak Soni

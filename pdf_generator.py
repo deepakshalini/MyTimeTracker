@@ -38,7 +38,7 @@ ASSETS = BASE_DIR / "assets"
 styles = getSampleStyleSheet()
 
 
-def icon(name, size=16):
+def icon(name, size=18):
 
     path = ASSETS / name
 
@@ -119,10 +119,10 @@ def generate_pdf(
 
     left_info = Table(
         [[
-            icon("calendar.png", 14),
+            icon("calendar.png", 16),
             generated_text
         ]],
-        colWidths=[20, 195]
+        colWidths=[24, 190]
     )
 
     right_info = Table(
@@ -134,6 +134,17 @@ def generate_pdf(
         [[left_info, right_info]],
         colWidths=[235, 235]
     )
+
+    top_table.setStyle(TableStyle([
+
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
+        )
+
+    ]))
 
     elements.append(top_table)
 
@@ -260,7 +271,7 @@ def generate_pdf(
     hours_card = Table(
         [[
 
-            icon("clock.png", 28),
+            icon("clock.png", 34),
 
             Paragraph(
                 f"""
@@ -268,9 +279,9 @@ def generate_pdf(
                 <b>TOTAL HOURS</b>
                 </font>
 
-                <br/><br/>
+                <br/><br/><br/>
 
-                <font size=24 color="{TEXT}">
+                <font size=23 color="{TEXT}">
                 <b>{total_hours}</b>
                 </font>
                 """,
@@ -278,13 +289,13 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[48, 150]
+        colWidths=[58, 150]
     )
 
     amount_card = Table(
         [[
 
-            icon("money.png", 28),
+            icon("money.png", 34),
 
             Paragraph(
                 f"""
@@ -292,9 +303,9 @@ def generate_pdf(
                 <b>FINAL AMOUNT</b>
                 </font>
 
-                <br/><br/>
+                <br/><br/><br/>
 
-                <font size=24 color="{TEXT}">
+                <font size=23 color="{TEXT}">
                 <b>${total_amount}</b>
                 </font>
                 """,
@@ -302,7 +313,7 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[48, 150]
+        colWidths=[58, 150]
     )
 
     summary_table = Table(
@@ -361,6 +372,13 @@ def generate_pdf(
             (0, 0),
             (-1, -1),
             16
+        ),
+
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
         )
 
     ]))
@@ -373,10 +391,12 @@ def generate_pdf(
     # WORK TITLE
     # ==================================================
 
+    work_icon = icon("work.png", 20)
+
     work_title = Table(
         [[
 
-            icon("work.png", 18),
+            work_icon,
 
             Paragraph(
                 f"""
@@ -388,8 +408,19 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[28, 430]
+        colWidths=[30, 430]
     )
+
+    work_title.setStyle(TableStyle([
+
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
+        )
+
+    ]))
 
     elements.append(work_title)
 
@@ -549,7 +580,7 @@ def generate_pdf(
     thank_you_content = Table(
         [[
 
-            icon("thumb.png", 24),
+            icon("thumb.png", 26),
 
             Paragraph(
                 f"""
@@ -568,8 +599,19 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[42, 395]
+        colWidths=[44, 395]
     )
+
+    thank_you_content.setStyle(TableStyle([
+
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
+        )
+
+    ]))
 
     thank_you_table = Table(
         [[thank_you_content]],

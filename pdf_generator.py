@@ -21,6 +21,8 @@ from reportlab.platypus.flowables import (
 
 from datetime import datetime
 
+from pathlib import Path
+
 
 PRIMARY = "#0F766E"
 LIGHT = "#ECFEFF"
@@ -29,10 +31,15 @@ TEXT = "#111827"
 SUBTEXT = "#4B5563"
 
 
-def icon(path, size=18):
+BASE_DIR = Path(__file__).resolve().parent
+
+ASSETS = BASE_DIR / "assets"
+
+
+def icon(name, size=18):
 
     return Image(
-        path,
+        str(ASSETS / name),
         width=size,
         height=size
     )
@@ -104,19 +111,26 @@ def generate_pdf(
         styles['BodyText']
     )
 
+    left_info = Table(
+        [[
+            icon("calendar.png", 16),
+            generated
+        ]],
+        colWidths=[24, 200]
+    )
+
+    right_info = Table(
+        [[
+            icon("user.png", 16),
+            prepared
+        ]],
+        colWidths=[24, 200]
+    )
+
     top_table = Table(
         [[
-
-            Table([[
-                icon("assets/calendar.png", 16),
-                generated
-            ]], colWidths=[22, 210]),
-
-            Table([[
-                icon("assets/user.png", 16),
-                prepared
-            ]], colWidths=[22, 210])
-
+            left_info,
+            right_info
         ]],
         colWidths=[235, 235]
     )
@@ -147,14 +161,14 @@ def generate_pdf(
     elements.append(Spacer(1, 25))
 
     # ==================================================
-    # CLIENT INFO CARD
+    # CLIENT INFO
     # ==================================================
 
     client_info = [
 
         [
             Table([[
-                icon("assets/user.png"),
+                icon("user.png"),
                 Paragraph(
                     f"""
                     <font color="{TEXT}">
@@ -170,7 +184,7 @@ def generate_pdf(
 
         [
             Table([[
-                icon("assets/work.png"),
+                icon("work.png"),
                 Paragraph(
                     f"""
                     <font color="{TEXT}">
@@ -186,7 +200,7 @@ def generate_pdf(
 
         [
             Table([[
-                icon("assets/money.png"),
+                icon("money.png"),
                 Paragraph(
                     f"""
                     <font color="{TEXT}">
@@ -233,20 +247,6 @@ def generate_pdf(
         ),
 
         (
-            'FONTNAME',
-            (0, 0),
-            (-1, -1),
-            'Helvetica'
-        ),
-
-        (
-            'FONTSIZE',
-            (0, 0),
-            (-1, -1),
-            11
-        ),
-
-        (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
@@ -280,7 +280,7 @@ def generate_pdf(
     total_hours_card = Table(
         [[
 
-            icon("assets/clock.png", 34),
+            icon("clock.png", 34),
 
             Paragraph(
                 f"""
@@ -301,21 +301,10 @@ def generate_pdf(
         colWidths=[60, 160]
     )
 
-    total_hours_card.setStyle(TableStyle([
-
-        (
-            'VALIGN',
-            (0, 0),
-            (-1, -1),
-            'MIDDLE'
-        ),
-
-    ]))
-
     total_amount_card = Table(
         [[
 
-            icon("assets/money.png", 34),
+            icon("money.png", 34),
 
             Paragraph(
                 f"""
@@ -335,17 +324,6 @@ def generate_pdf(
         ]],
         colWidths=[60, 160]
     )
-
-    total_amount_card.setStyle(TableStyle([
-
-        (
-            'VALIGN',
-            (0, 0),
-            (-1, -1),
-            'MIDDLE'
-        ),
-
-    ]))
 
     summary_table = Table(
         [[
@@ -407,7 +385,7 @@ def generate_pdf(
     work_title = Table(
         [[
 
-            icon("assets/work.png", 22),
+            icon("work.png", 22),
 
             Paragraph(
                 f"""
@@ -427,7 +405,7 @@ def generate_pdf(
     elements.append(Spacer(1, 10))
 
     # ==================================================
-    # TABLE DATA
+    # TABLE
     # ==================================================
 
     data = [[
@@ -522,24 +500,10 @@ def generate_pdf(
         ),
 
         (
-            'FONTNAME',
-            (0, 1),
-            (-1, -1),
-            'Helvetica'
-        ),
-
-        (
             'FONTSIZE',
             (0, 1),
             (-1, -1),
             9
-        ),
-
-        (
-            'LEADING',
-            (0, 1),
-            (-1, -1),
-            15
         ),
 
         (
@@ -563,13 +527,6 @@ def generate_pdf(
             (-1, -1),
             10
         ),
-
-        (
-            'VALIGN',
-            (0, 0),
-            (-1, -1),
-            'TOP'
-        )
 
     ]
 
@@ -595,13 +552,13 @@ def generate_pdf(
     elements.append(Spacer(1, 32))
 
     # ==================================================
-    # THANK YOU BOX
+    # THANK YOU
     # ==================================================
 
     thank_you_content = Table(
         [[
 
-            icon("assets/thumb.png", 32),
+            icon("thumb.png", 32),
 
             Paragraph(
                 f"""

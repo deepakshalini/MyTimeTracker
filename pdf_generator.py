@@ -55,8 +55,10 @@ def generate_pdf(
         styles['Title']
     )
 
-    generated_time = Paragraph(
+    header_info = Paragraph(
         f"""
+        <para alignment="right">
+
         <font size=10 color="#374151">
 
         <b>Generated:</b>
@@ -68,15 +70,31 @@ def generate_pdf(
         Team Shalini
 
         </font>
+
+        </para>
         """,
         styles['BodyText']
     )
 
-    elements.append(title)
+    header_table = Table(
+        [
+            [title, header_info]
+        ],
+        colWidths=[320, 150]
+    )
 
-    elements.append(Spacer(1, 8))
+    header_table.setStyle(TableStyle([
 
-    elements.append(generated_time)
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'TOP'
+        ),
+
+    ]))
+
+    elements.append(header_table)
 
     elements.append(Spacer(1, 18))
 
@@ -88,7 +106,7 @@ def generate_pdf(
         )
     )
 
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 22))
 
     # ==================================================
     # CLIENT INFO
@@ -185,56 +203,57 @@ def generate_pdf(
 
     elements.append(client_table)
 
-    elements.append(Spacer(1, 22))
+    elements.append(Spacer(1, 24))
 
     # ==================================================
-    # SUMMARY BOX
+    # SUMMARY CARDS
     # ==================================================
 
-    summary_data = [[
+    total_hours_box = Paragraph(
+        f"""
+        <para alignment="center">
 
-        Paragraph(
-            f"""
-            <font size=28 color="#2563EB">⏱</font>
+        <font size=11 color="#2563EB">
+        <b>TOTAL HOURS</b>
+        </font>
 
-            <br/><br/>
+        <br/><br/>
 
-            <font size=11 color="#2563EB">
-            <b>TOTAL HOURS</b>
-            </font>
+        <font size=24 color="#111827">
+        <b>{total_hours}</b>
+        </font>
 
-            <br/><br/>
+        </para>
+        """,
+        styles['BodyText']
+    )
 
-            <font size=20>
-            <b>{total_hours}</b>
-            </font>
-            """,
-            styles['BodyText']
-        ),
+    total_amount_box = Paragraph(
+        f"""
+        <para alignment="center">
 
-        Paragraph(
-            f"""
-            <font size=28 color="#059669">$</font>
+        <font size=11 color="#059669">
+        <b>FINAL AMOUNT</b>
+        </font>
 
-            <br/><br/>
+        <br/><br/>
 
-            <font size=11 color="#059669">
-            <b>FINAL AMOUNT</b>
-            </font>
+        <font size=24 color="#111827">
+        <b>${total_amount}</b>
+        </font>
 
-            <br/><br/>
-
-            <font size=20>
-            <b>${total_amount}</b>
-            </font>
-            """,
-            styles['BodyText']
-        )
-
-    ]]
+        </para>
+        """,
+        styles['BodyText']
+    )
 
     summary_table = Table(
-        summary_data,
+        [
+            [
+                total_hours_box,
+                total_amount_box
+            ]
+        ],
         colWidths=[235, 235]
     )
 
@@ -243,8 +262,15 @@ def generate_pdf(
         (
             'BACKGROUND',
             (0, 0),
-            (-1, -1),
-            colors.HexColor("#F8FAFC")
+            (0, 0),
+            colors.HexColor("#EFF6FF")
+        ),
+
+        (
+            'BACKGROUND',
+            (1, 0),
+            (1, 0),
+            colors.HexColor("#ECFDF5")
         ),
 
         (
@@ -256,31 +282,39 @@ def generate_pdf(
         ),
 
         (
+            'INNERGRID',
+            (0, 0),
+            (-1, -1),
+            1,
+            colors.white
+        ),
+
+        (
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            18
+            20
         ),
 
         (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            18
+            20
         ),
 
         (
-            'LEFTPADDING',
+            'VALIGN',
             (0, 0),
             (-1, -1),
-            20
+            'MIDDLE'
         )
 
     ]))
 
     elements.append(summary_table)
 
-    elements.append(Spacer(1, 30))
+    elements.append(Spacer(1, 32))
 
     # ==================================================
     # WORK LOG TITLE
@@ -289,7 +323,7 @@ def generate_pdf(
     work_title = Paragraph(
         """
         <font size=16 color="#1D4ED8">
-        🗂 <b>WORK LOG DETAILS</b>
+        <b>WORK LOG DETAILS</b>
         </font>
         """,
         styles['Heading2']
@@ -297,7 +331,7 @@ def generate_pdf(
 
     elements.append(work_title)
 
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 8))
 
     elements.append(
         HRFlowable(
@@ -371,7 +405,7 @@ def generate_pdf(
 
     table = Table(
         data,
-        colWidths=[30, 90, 160, 90, 90, 45]
+        colWidths=[28, 95, 155, 90, 90, 42]
     )
 
     style = [
@@ -456,10 +490,6 @@ def generate_pdf(
 
     ]
 
-    # ==================================================
-    # ZEBRA ROWS
-    # ==================================================
-
     for row in range(1, len(data)):
 
         bg = (
@@ -479,19 +509,15 @@ def generate_pdf(
 
     elements.append(table)
 
-    elements.append(Spacer(1, 28))
+    elements.append(Spacer(1, 30))
 
     # ==================================================
     # THANK YOU SECTION
     # ==================================================
 
-    note = Paragraph(
+    thank_you = Paragraph(
         """
-        <font size=10 color="#374151">
-
-        <font size=18 color="#2563EB">📄</font>
-
-        <br/><br/>
+        <font size=11 color="#111827">
 
         <b>Thank you for your business!</b>
 
@@ -505,7 +531,7 @@ def generate_pdf(
         styles['BodyText']
     )
 
-    elements.append(note)
+    elements.append(thank_you)
 
     elements.append(Spacer(1, 20))
 

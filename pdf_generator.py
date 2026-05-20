@@ -74,8 +74,6 @@ def generate_pdf(
 
     elements.append(title)
 
-    elements.append(subtitle)
-
     elements.append(Spacer(1, 8))
 
     elements.append(generated_time)

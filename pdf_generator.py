@@ -38,7 +38,7 @@ ASSETS = BASE_DIR / "assets"
 styles = getSampleStyleSheet()
 
 
-def icon(name, size=18):
+def icon(name, size=16):
 
     path = ASSETS / name
 
@@ -78,7 +78,7 @@ def generate_pdf(
 
     title = Paragraph(
         f"""
-        <font size=26 color="{PRIMARY}">
+        <font size=24 color="{PRIMARY}">
         <b>TIME TRACKING REPORT</b>
         </font>
         """,
@@ -87,7 +87,7 @@ def generate_pdf(
 
     elements.append(title)
 
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 14))
 
     # ==================================================
     # TOP INFO
@@ -95,7 +95,7 @@ def generate_pdf(
 
     generated_text = Paragraph(
         f"""
-        <font size=10 color="{TEXT}">
+        <font size=9 color="{TEXT}">
         <b>Generated:</b>
         {datetime.now().strftime("%d %b %Y %I:%M %p")}
         </font>
@@ -107,7 +107,7 @@ def generate_pdf(
         f"""
         <para alignment="right">
 
-        <font size=10 color="{TEXT}">
+        <font size=9 color="{TEXT}">
         <b>Prepared By:</b>
         Team Shalini
         </font>
@@ -119,16 +119,14 @@ def generate_pdf(
 
     left_info = Table(
         [[
-            icon("calendar.png", 16),
+            icon("calendar.png", 14),
             generated_text
         ]],
-        colWidths=[24, 190]
+        colWidths=[20, 195]
     )
 
     right_info = Table(
-        [[
-            prepared_text
-        ]],
+        [[prepared_text]],
         colWidths=[214]
     )
 
@@ -139,17 +137,17 @@ def generate_pdf(
 
     elements.append(top_table)
 
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
 
     elements.append(
         HRFlowable(
             width="100%",
-            thickness=1.4,
+            thickness=1.2,
             color=colors.HexColor(PRIMARY)
         )
     )
 
-    elements.append(Spacer(1, 24))
+    elements.append(Spacer(1, 22))
 
     # ==================================================
     # CLIENT INFO
@@ -232,28 +230,28 @@ def generate_pdf(
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            14
+            12
         ),
 
         (
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            14
+            12
         ),
 
         (
             'LEFTPADDING',
             (0, 0),
             (-1, -1),
-            18
+            16
         )
 
     ]))
 
     elements.append(client_table)
 
-    elements.append(Spacer(1, 24))
+    elements.append(Spacer(1, 22))
 
     # ==================================================
     # SUMMARY
@@ -262,17 +260,17 @@ def generate_pdf(
     hours_card = Table(
         [[
 
-            icon("clock.png", 34),
+            icon("clock.png", 28),
 
             Paragraph(
                 f"""
-                <font size=12 color="{PRIMARY}">
+                <font size=11 color="{PRIMARY}">
                 <b>TOTAL HOURS</b>
                 </font>
 
-                <br/><br/><br/>
+                <br/><br/>
 
-                <font size=28 color="{TEXT}">
+                <font size=24 color="{TEXT}">
                 <b>{total_hours}</b>
                 </font>
                 """,
@@ -280,23 +278,23 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[55, 160]
+        colWidths=[48, 150]
     )
 
     amount_card = Table(
         [[
 
-            icon("money.png", 34),
+            icon("money.png", 28),
 
             Paragraph(
                 f"""
-                <font size=12 color="{PRIMARY}">
+                <font size=11 color="{PRIMARY}">
                 <b>FINAL AMOUNT</b>
                 </font>
 
-                <br/><br/><br/>
+                <br/><br/>
 
-                <font size=28 color="{TEXT}">
+                <font size=24 color="{TEXT}">
                 <b>${total_amount}</b>
                 </font>
                 """,
@@ -304,7 +302,7 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[55, 160]
+        colWidths=[48, 150]
     )
 
     summary_table = Table(
@@ -333,29 +331,43 @@ def generate_pdf(
             'INNERGRID',
             (0, 0),
             (-1, -1),
-            1,
-            colors.white
+            0.5,
+            colors.HexColor(BORDER)
         ),
 
         (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            22
+            18
         ),
 
         (
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            22
+            18
+        ),
+
+        (
+            'LEFTPADDING',
+            (0, 0),
+            (-1, -1),
+            16
+        ),
+
+        (
+            'RIGHTPADDING',
+            (0, 0),
+            (-1, -1),
+            16
         )
 
     ]))
 
     elements.append(summary_table)
 
-    elements.append(Spacer(1, 30))
+    elements.append(Spacer(1, 28))
 
     # ==================================================
     # WORK TITLE
@@ -364,11 +376,11 @@ def generate_pdf(
     work_title = Table(
         [[
 
-            icon("work.png", 22),
+            icon("work.png", 18),
 
             Paragraph(
                 f"""
-                <font size=17 color="{PRIMARY}">
+                <font size=15 color="{PRIMARY}">
                 <b>WORK LOG DETAILS</b>
                 </font>
                 """,
@@ -376,7 +388,7 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[32, 430]
+        colWidths=[28, 430]
     )
 
     elements.append(work_title)
@@ -472,6 +484,20 @@ def generate_pdf(
         ),
 
         (
+            'FONTSIZE',
+            (0, 0),
+            (-1, 0),
+            9
+        ),
+
+        (
+            'FONTSIZE',
+            (0, 1),
+            (-1, -1),
+            8.5
+        ),
+
+        (
             'GRID',
             (0, 0),
             (-1, -1),
@@ -483,14 +509,14 @@ def generate_pdf(
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            10
+            9
         ),
 
         (
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            10
+            9
         )
 
     ]
@@ -514,7 +540,7 @@ def generate_pdf(
 
     elements.append(table)
 
-    elements.append(Spacer(1, 32))
+    elements.append(Spacer(1, 28))
 
     # ==================================================
     # THANK YOU
@@ -523,17 +549,17 @@ def generate_pdf(
     thank_you_content = Table(
         [[
 
-            icon("thumb.png", 30),
+            icon("thumb.png", 24),
 
             Paragraph(
                 f"""
-                <font size=12 color="{PRIMARY}">
+                <font size=11 color="{PRIMARY}">
                 <b>Thank you for your business!</b>
                 </font>
 
                 <br/><br/>
 
-                <font size=10 color="{SUBTEXT}">
+                <font size=9 color="{SUBTEXT}">
                 If you have any questions regarding this report,
                 please feel free to reach out.
                 </font>
@@ -542,7 +568,7 @@ def generate_pdf(
             )
 
         ]],
-        colWidths=[50, 390]
+        colWidths=[42, 395]
     )
 
     thank_you_table = Table(
@@ -571,28 +597,28 @@ def generate_pdf(
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            18
+            16
         ),
 
         (
             'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            18
+            16
         ),
 
         (
             'LEFTPADDING',
             (0, 0),
             (-1, -1),
-            18
+            16
         )
 
     ]))
 
     elements.append(thank_you_table)
 
-    elements.append(Spacer(1, 26))
+    elements.append(Spacer(1, 24))
 
     elements.append(
         HRFlowable(
@@ -608,7 +634,7 @@ def generate_pdf(
         f"""
         <para alignment="center">
 
-        <font size=9 color="{SUBTEXT}">
+        <font size=8.5 color="{SUBTEXT}">
         Generated using Time Tracker
         •
         Confidential Work Activity Report

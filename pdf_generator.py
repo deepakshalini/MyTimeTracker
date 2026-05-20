@@ -676,10 +676,10 @@ def generate_pdf(
         f"""
         <para alignment="center">
 
-        <font size=8.5 color="{SUBTEXT}">
+        <font size=8 color="{SUBTEXT}">
         Generated using Time Tracker
         •
-        Confidential Work Activity Report
+        Developed by Deepak Soni
         </font>
 
         </para>

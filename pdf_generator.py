@@ -675,7 +675,7 @@ def generate_pdf(
         <font size=8.5 color="{SUBTEXT}">
         Generated using Time Tracker
         •
-        Confidential Work Activity Report
+        Developed by Deepak Soni
         </font>
 
         </para>

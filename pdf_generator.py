@@ -3,7 +3,8 @@ from reportlab.platypus import (
     Paragraph,
     Spacer,
     Table,
-    TableStyle
+    TableStyle,
+    Image
 )
 
 from reportlab.lib import colors
@@ -19,6 +20,22 @@ from reportlab.platypus.flowables import (
 )
 
 from datetime import datetime
+
+
+PRIMARY = "#0F766E"
+LIGHT = "#ECFEFF"
+BORDER = "#CFFAFE"
+TEXT = "#111827"
+SUBTEXT = "#4B5563"
+
+
+def icon(path, size=18):
+
+    return Image(
+        path,
+        width=size,
+        height=size
+    )
 
 
 def generate_pdf(
@@ -43,43 +60,43 @@ def generate_pdf(
     elements = []
 
     # ==================================================
-    # HEADER
+    # TITLE
     # ==================================================
 
     title = Paragraph(
-        """
-        <font size=24 color="#1D4ED8">
+        f"""
+        <font size=26 color="{PRIMARY}">
         <b>TIME TRACKING REPORT</b>
         </font>
         """,
         styles['Title']
     )
 
-    generated_info = Paragraph(
+    elements.append(title)
+
+    elements.append(Spacer(1, 15))
+
+    # ==================================================
+    # TOP INFO
+    # ==================================================
+
+    generated = Paragraph(
         f"""
-        <para alignment="left">
-
-        <font size=10 color="#374151">
-
+        <font size=10 color="{TEXT}">
         <b>Generated:</b>
         {datetime.now().strftime("%d %b %Y %I:%M %p")}
-
         </font>
-
-        </para>
         """,
         styles['BodyText']
     )
 
-    prepared_by = Paragraph(
-        """
+    prepared = Paragraph(
+        f"""
         <para alignment="right">
 
-        <font size=10 color="#374151">
-
+        <font size=10 color="{TEXT}">
         <b>Prepared By:</b>
         Team Shalini
-
         </font>
 
         </para>
@@ -87,82 +104,107 @@ def generate_pdf(
         styles['BodyText']
     )
 
-    top_info_table = Table(
-        [
-            [
-                generated_info,
-                prepared_by
-            ]
-        ],
+    top_table = Table(
+        [[
+
+            Table([[
+                icon("assets/calendar.png", 16),
+                generated
+            ]], colWidths=[22, 210]),
+
+            Table([[
+                icon("assets/user.png", 16),
+                prepared
+            ]], colWidths=[22, 210])
+
+        ]],
         colWidths=[235, 235]
     )
 
-    top_info_table.setStyle(TableStyle([
+    top_table.setStyle(TableStyle([
 
         (
             'VALIGN',
             (0, 0),
             (-1, -1),
-            'TOP'
+            'MIDDLE'
         ),
 
     ]))
 
-    elements.append(title)
+    elements.append(top_table)
 
-    elements.append(Spacer(1, 8))
-
-    elements.append(top_info_table)
-
-    elements.append(Spacer(1, 18))
+    elements.append(Spacer(1, 12))
 
     elements.append(
         HRFlowable(
             width="100%",
-            thickness=1.2,
-            color=colors.HexColor("#2563EB")
+            thickness=1.5,
+            color=colors.HexColor(PRIMARY)
         )
     )
 
-    elements.append(Spacer(1, 22))
+    elements.append(Spacer(1, 25))
 
     # ==================================================
-    # CLIENT INFO
+    # CLIENT INFO CARD
     # ==================================================
 
     client_info = [
 
         [
-            Paragraph(
-                "<b>Client</b>",
-                styles['BodyText']
-            ),
+            Table([[
+                icon("assets/user.png"),
+                Paragraph(
+                    f"""
+                    <font color="{TEXT}">
+                    <b>Client</b>
+                    </font>
+                    """,
+                    styles['BodyText']
+                )
+            ]], colWidths=[28, 120]),
 
             task["client_name"]
         ],
 
         [
-            Paragraph(
-                "<b>Main Task</b>",
-                styles['BodyText']
-            ),
+            Table([[
+                icon("assets/work.png"),
+                Paragraph(
+                    f"""
+                    <font color="{TEXT}">
+                    <b>Main Task</b>
+                    </font>
+                    """,
+                    styles['BodyText']
+                )
+            ]], colWidths=[28, 120]),
 
             task["task_name"]
         ],
 
         [
-            Paragraph(
-                "<b>Hourly Rate</b>",
-                styles['BodyText']
-            ),
+            Table([[
+                icon("assets/money.png"),
+                Paragraph(
+                    f"""
+                    <font color="{TEXT}">
+                    <b>Hourly Rate</b>
+                    </font>
+                    """,
+                    styles['BodyText']
+                )
+            ]], colWidths=[28, 120]),
 
             f"${task['hourly_rate']}/hr"
         ]
+
     ]
 
     client_table = Table(
         client_info,
-        colWidths=[140, 330]
+        colWidths=[170, 300]
     )
 
     client_table.setStyle(TableStyle([
@@ -170,15 +212,24 @@ def generate_pdf(
         (
             'BACKGROUND',
             (0, 0),
-            (0, -1),
-            colors.HexColor('#EFF6FF')
+            (-1, -1),
+            colors.HexColor(LIGHT)
         ),
 
         (
-            'TEXTCOLOR',
+            'BOX',
             (0, 0),
             (-1, -1),
-            colors.black
+            1,
+            colors.HexColor(BORDER)
+        ),
+
+        (
+            'LINEBELOW',
+            (0, 0),
+            (-1, -2),
+            0.5,
+            colors.HexColor(BORDER)
         ),
 
         (
@@ -196,25 +247,24 @@ def generate_pdf(
         ),
 
         (
-            'BOTTOMPADDING',
-            (0, 0),
-            (-1, -1),
-            10
-        ),
-
-        (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            10
+            14
         ),
 
         (
-            'GRID',
+            'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            0.5,
-            colors.HexColor("#D1D5DB")
+            14
+        ),
+
+        (
+            'LEFTPADDING',
+            (0, 0),
+            (-1, -1),
+            18
         ),
 
     ]))
@@ -227,51 +277,81 @@ def generate_pdf(
     # SUMMARY CARDS
     # ==================================================
 
-    total_hours_box = Paragraph(
-        f"""
-        <para alignment="center">
+    total_hours_card = Table(
+        [[
 
-        <font size=10 color="#2563EB">
-        <b>TOTAL HOURS</b>
-        </font>
+            icon("assets/clock.png", 34),
 
-        <br/><br/>
+            Paragraph(
+                f"""
+                <font size=12 color="{PRIMARY}">
+                <b>TOTAL HOURS</b>
+                </font>
 
-        <font size=26 color="#111827">
-        <b>{total_hours}</b>
-        </font>
+                <br/><br/>
 
-        </para>
-        """,
-        styles['BodyText']
+                <font size=28 color="{TEXT}">
+                <b>{total_hours}</b>
+                </font>
+                """,
+                styles['BodyText']
+            )
+
+        ]],
+        colWidths=[60, 160]
     )
 
-    total_amount_box = Paragraph(
-        f"""
-        <para alignment="center">
+    total_hours_card.setStyle(TableStyle([
 
-        <font size=10 color="#059669">
-        <b>FINAL AMOUNT</b>
-        </font>
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
+        ),
 
-        <br/><br/>
+    ]))
 
-        <font size=26 color="#111827">
-        <b>${total_amount}</b>
-        </font>
+    total_amount_card = Table(
+        [[
 
-        </para>
-        """,
-        styles['BodyText']
+            icon("assets/money.png", 34),
+
+            Paragraph(
+                f"""
+                <font size=12 color="{PRIMARY}">
+                <b>FINAL AMOUNT</b>
+                </font>
+
+                <br/><br/>
+
+                <font size=28 color="{TEXT}">
+                <b>${total_amount}</b>
+                </font>
+                """,
+                styles['BodyText']
+            )
+
+        ]],
+        colWidths=[60, 160]
     )
+
+    total_amount_card.setStyle(TableStyle([
+
+        (
+            'VALIGN',
+            (0, 0),
+            (-1, -1),
+            'MIDDLE'
+        ),
+
+    ]))
 
     summary_table = Table(
-        [
-            [
-                total_hours_box,
-                total_amount_box
-            ]
-        ],
+        [[
+            total_hours_card,
+            total_amount_card
+        ]],
         colWidths=[235, 235]
     )
 
@@ -280,15 +360,8 @@ def generate_pdf(
         (
             'BACKGROUND',
             (0, 0),
-            (0, 0),
-            colors.HexColor("#DBEAFE")
-        ),
-
-        (
-            'BACKGROUND',
-            (1, 0),
-            (1, 0),
-            colors.HexColor("#D1FAE5")
+            (-1, -1),
+            colors.HexColor(LIGHT)
         ),
 
         (
@@ -296,7 +369,7 @@ def generate_pdf(
             (0, 0),
             (-1, -1),
             1,
-            colors.HexColor("#E5E7EB")
+            colors.HexColor(BORDER)
         ),
 
         (
@@ -308,13 +381,6 @@ def generate_pdf(
         ),
 
         (
-            'BOTTOMPADDING',
-            (0, 0),
-            (-1, -1),
-            22
-        ),
-
-        (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
@@ -322,11 +388,11 @@ def generate_pdf(
         ),
 
         (
-            'VALIGN',
+            'BOTTOMPADDING',
             (0, 0),
             (-1, -1),
-            'MIDDLE'
-        )
+            22
+        ),
 
     ]))
 
@@ -338,31 +404,30 @@ def generate_pdf(
     # WORK LOG TITLE
     # ==================================================
 
-    work_title = Paragraph(
-        """
-        <font size=16 color="#1D4ED8">
-        <b>WORK LOG DETAILS</b>
-        </font>
-        """,
-        styles['Heading2']
+    work_title = Table(
+        [[
+
+            icon("assets/work.png", 22),
+
+            Paragraph(
+                f"""
+                <font size=17 color="{PRIMARY}">
+                <b>WORK LOG DETAILS</b>
+                </font>
+                """,
+                styles['Heading2']
+            )
+
+        ]],
+        colWidths=[32, 430]
     )
 
     elements.append(work_title)
 
-    elements.append(Spacer(1, 8))
-
-    elements.append(
-        HRFlowable(
-            width="100%",
-            thickness=1,
-            color=colors.HexColor("#2563EB")
-        )
-    )
-
-    elements.append(Spacer(1, 14))
+    elements.append(Spacer(1, 10))
 
     # ==================================================
-    # TABLE
+    # TABLE DATA
     # ==================================================
 
     data = [[
@@ -392,12 +457,12 @@ def generate_pdf(
         start = datetime.strptime(
             sub["start_time"],
             "%Y-%m-%d %H:%M:%S"
-        ).strftime("%d %b %I:%M %p")
+        ).strftime("%d %b\n%I:%M %p")
 
         end = datetime.strptime(
             sub["end_time"],
             "%Y-%m-%d %H:%M:%S"
-        ).strftime("%d %b %I:%M %p")
+        ).strftime("%d %b\n%I:%M %p")
 
         data.append([
 
@@ -423,7 +488,7 @@ def generate_pdf(
 
     table = Table(
         data,
-        colWidths=[28, 95, 155, 90, 90, 42]
+        colWidths=[30, 95, 165, 70, 70, 45]
     )
 
     style = [
@@ -432,7 +497,7 @@ def generate_pdf(
             'BACKGROUND',
             (0, 0),
             (-1, 0),
-            colors.HexColor('#1D4ED8')
+            colors.HexColor(PRIMARY)
         ),
 
         (
@@ -474,7 +539,7 @@ def generate_pdf(
             'LEADING',
             (0, 1),
             (-1, -1),
-            13
+            15
         ),
 
         (
@@ -482,28 +547,28 @@ def generate_pdf(
             (0, 0),
             (-1, -1),
             0.5,
-            colors.HexColor("#D1D5DB")
-        ),
-
-        (
-            'BOTTOMPADDING',
-            (0, 0),
-            (-1, -1),
-            8
+            colors.HexColor(BORDER)
         ),
 
         (
             'TOPPADDING',
             (0, 0),
             (-1, -1),
-            8
+            10
+        ),
+
+        (
+            'BOTTOMPADDING',
+            (0, 0),
+            (-1, -1),
+            10
         ),
 
         (
             'VALIGN',
             (0, 0),
             (-1, -1),
-            'MIDDLE'
+            'TOP'
         )
 
     ]
@@ -513,7 +578,7 @@ def generate_pdf(
         bg = (
             colors.white
             if row % 2 == 0
-            else colors.HexColor("#F9FAFB")
+            else colors.HexColor("#F0FDFA")
         )
 
         style.append((
@@ -527,39 +592,107 @@ def generate_pdf(
 
     elements.append(table)
 
-    elements.append(Spacer(1, 30))
+    elements.append(Spacer(1, 32))
 
     # ==================================================
-    # THANK YOU SECTION
+    # THANK YOU BOX
     # ==================================================
 
-    thank_you = Paragraph(
-        """
-        <font size=11 color="#111827">
+    thank_you_content = Table(
+        [[
 
-        <b>Thank you for your business!</b>
+            icon("assets/thumb.png", 32),
 
-        <br/><br/>
+            Paragraph(
+                f"""
+                <font size=12 color="{PRIMARY}">
+                <b>Thank you for your business!</b>
+                </font>
 
-        If you have any questions regarding this report,
-        please feel free to reach out.
+                <br/><br/>
 
-        </font>
-        """,
-        styles['BodyText']
+                <font size=10 color="{SUBTEXT}">
+                If you have any questions regarding this report,
+                please feel free to reach out.
+                </font>
+                """,
+                styles['BodyText']
+            )
+
+        ]],
+        colWidths=[55, 390]
     )
 
-    elements.append(thank_you)
+    thank_you_table = Table(
+        [[thank_you_content]],
+        colWidths=[470]
+    )
 
-    elements.append(Spacer(1, 20))
+    thank_you_table.setStyle(TableStyle([
+
+        (
+            'BACKGROUND',
+            (0, 0),
+            (-1, -1),
+            colors.HexColor(LIGHT)
+        ),
+
+        (
+            'BOX',
+            (0, 0),
+            (-1, -1),
+            1,
+            colors.HexColor(BORDER)
+        ),
+
+        (
+            'TOPPADDING',
+            (0, 0),
+            (-1, -1),
+            18
+        ),
+
+        (
+            'BOTTOMPADDING',
+            (0, 0),
+            (-1, -1),
+            18
+        ),
+
+        (
+            'LEFTPADDING',
+            (0, 0),
+            (-1, -1),
+            18
+        ),
+
+    ]))
+
+    elements.append(thank_you_table)
+
+    elements.append(Spacer(1, 26))
+
+    elements.append(
+        HRFlowable(
+            width="100%",
+            thickness=1,
+            color=colors.HexColor(PRIMARY)
+        )
+    )
+
+    elements.append(Spacer(1, 12))
 
     footer = Paragraph(
-        """
-        <font size=9 color="#6B7280">
+        f"""
+        <para alignment="center">
+
+        <font size=9 color="{SUBTEXT}">
         Generated using Time Tracker
         •
         Confidential Work Activity Report
         </font>
+
+        </para>
         """,
         styles['BodyText']
     )
@@ -567,7 +700,7 @@ def generate_pdf(
     elements.append(footer)
 
     # ==================================================
-    # BUILD PDF
+    # BUILD
     # ==================================================
 
     doc.build(elements)

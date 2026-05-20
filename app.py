@@ -158,7 +158,7 @@ else:
 
                 with open(pdf_file, "rb") as file:
                     st.download_button(
-                        "📄 PDF",
+                        "📜 Get Report",
                         file,
                         file_name=pdf_file,
                         key=f"download_{task_id}"

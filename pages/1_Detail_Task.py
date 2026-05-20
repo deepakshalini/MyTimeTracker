@@ -61,6 +61,10 @@ st.write(
 )
 
 st.write(
+    f"Total Subtasks: {len(subtasks)}"
+)
+
+st.write(
     f"Hourly Rate: ${task['hourly_rate']}"
 )
 

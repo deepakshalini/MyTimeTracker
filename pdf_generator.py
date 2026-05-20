@@ -8,6 +8,7 @@ from reportlab.platypus import (
 )
 
 from reportlab.lib import colors
+from pathlib import Path
 
 from reportlab.lib.styles import (
     getSampleStyleSheet
@@ -60,6 +61,10 @@ def generate_pdf(
     total_hours,
     total_amount
 ):
+    # delete previously generated pdf if any.
+
+    for pdf in Path(".").glob("*.pdf"):
+        pdf.unlink(missing_ok=True)
 
     doc = SimpleDocTemplate(
         filename,

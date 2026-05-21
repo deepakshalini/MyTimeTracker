@@ -32,20 +32,3 @@ def hours_badge(subtask_hours):
         ⏱ {subtask_hours} hrs
     </div>
     """
-
-def page_header():
-
-    return """
-    <div class="page-header">
-
-        <div class="page-title">
-            Task Details
-        </div>
-
-        <div class="page-subtitle">
-            Manage and review all subtasks,
-            timings and task progress.
-        </div>
-
-    </div>
-    """

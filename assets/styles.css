@@ -1,33 +1,3 @@
-/* Detail page heading section */
-.page-header {
-
-    margin-bottom: 22px;
-}
-
-
-/*  title */
-.page-title {
-
-    font-size: 28px;
-
-    font-weight: 700;
-
-    color: #F9FAFB;
-
-    line-height: 1.2;
-}
-
-
-/* Subtitle below heading */
-.page-subtitle {
-
-    color: #9CA3AF;
-
-    font-size: 14px;
-
-    margin-top: 4px;
-}
-
 
 /* Top summary card shown on detail page */
 .summary-card {

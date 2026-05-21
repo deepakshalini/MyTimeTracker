@@ -11,7 +11,6 @@ from utils import (
     seconds_to_hours,
     calculate_amount,
     load_css,
-    page_header,
     hours_badge
 )
 
@@ -57,10 +56,7 @@ total_amount = calculate_amount(
 
 # ----------------- Top summary card --------------
 
-st.markdown(
-    page_header(),
-    unsafe_allow_html=True
-)
+st.title("Task Details")
 
 with st.container(border=True):
 

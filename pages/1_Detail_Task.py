@@ -11,8 +11,7 @@ from utils import (
     seconds_to_hours,
     calculate_amount,
     load_css,
-    hours_badge,
-    summary_card
+    hours_badge
 )
 
 load_css()

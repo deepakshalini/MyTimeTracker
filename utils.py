@@ -81,7 +81,9 @@ def summary_card(
 
             </tr>
 
-            <tr class="summary-divider">
+            <tr style="
+                border-top:1px solid rgba(255,255,255,0.06);
+            ">
 
                 <td>
                     <div class="summary-label">

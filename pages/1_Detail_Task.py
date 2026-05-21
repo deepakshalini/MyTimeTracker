@@ -82,6 +82,29 @@ for sub in subtasks:
 
     with st.container(border=True):
 
+        # A short div to show total hours at top corner of subtask card.
+        subtask_hours = seconds_to_hours(
+            sub["total_seconds"] or 0
+        )
+
+        st.markdown(
+            f"""
+            <div style="
+                width: fit-content;
+                margin-left: auto;
+                padding: 4px 10px;
+                border: 1px solid green;
+                border-radius: 4px;
+                color: green;
+                font-size: 12px;
+                font-weight: 600;
+            ">
+                {subtask_hours} hrs
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         new_subtask_name = st.text_input(
             "Subtask",
             value=sub["subtask_name"],

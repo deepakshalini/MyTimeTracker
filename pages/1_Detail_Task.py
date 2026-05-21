@@ -4,7 +4,7 @@ from datetime import datetime
 from database import (
     get_tasks,
     get_subtasks,
-    update_subtask_time
+    update_subtask
 )
 
 from utils import (
@@ -82,12 +82,16 @@ for sub in subtasks:
 
     with st.container(border=True):
 
-        st.write(
-            f"Subtask: {sub['subtask_name']}"
+        new_subtask_name = st.text_input(
+            "Subtask",
+            value=sub["subtask_name"],
+            key=f"name_{sub['id']}"
         )
 
-        st.write(
-            f"Description: {sub['description']}"
+        new_description = st.text_area(
+            "Description",
+            value=sub["description"],
+            key=f"description_{sub['id']}"
         )
 
         start_datetime = datetime.strptime(
@@ -115,9 +119,10 @@ for sub in subtasks:
         )
 
         if st.button(
-                "Update",
-                key=f"update_{sub['id']}"
+            "Update",
+            key=f"update_{sub['id']}"
         ):
+
             updated_start = datetime.combine(
                 start_datetime.date(),
                 new_start
@@ -130,12 +135,14 @@ for sub in subtasks:
 
             total_seconds = int(
                 (
-                        updated_end - updated_start
+                    updated_end - updated_start
                 ).total_seconds()
             )
 
-            update_subtask_time(
+            update_subtask(
                 sub["id"],
+                new_subtask_name,
+                new_description,
                 updated_start.strftime(
                     "%Y-%m-%d %H:%M:%S"
                 ),

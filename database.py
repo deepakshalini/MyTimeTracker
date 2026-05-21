@@ -163,8 +163,10 @@ def get_running_subtask(task_id):
     return None
 
 
-def update_subtask_time(
+def update_subtask(
     subtask_id,
+    subtask_name,
+    description,
     start_time,
     end_time,
     total_seconds
@@ -173,6 +175,10 @@ def update_subtask_time(
     supabase.table(
         "subtasks"
     ).update({
+
+        "subtask_name": subtask_name,
+
+        "description": description,
 
         "start_time": start_time,
 

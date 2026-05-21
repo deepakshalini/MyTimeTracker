@@ -133,16 +133,22 @@ else:
 
             with col5:
 
+                btn1, btn2, btn3 = st.columns([1, 1, 1])
+
+                # ----------------- Detail Button -----------------
+
                 detail_url = (
                     f"/Detail_Task?task_id={task_id}"
                 )
 
-                st.link_button(
+                btn1.link_button(
                     "Detail",
-                    detail_url
+                    detail_url,
+                    use_container_width=True
                 )
 
-                # ----------------- Download PDF button ---------------
+                # ----------------- Download PDF -----------------
+
                 pdf_file = (
                     f"{task['client_name']}_"
                     f"{task['task_name']}_Report.pdf"
@@ -157,18 +163,21 @@ else:
                 )
 
                 with open(pdf_file, "rb") as file:
-                    st.download_button(
-                        "📜 Get Report",
+                    btn2.download_button(
+                        "📄",
                         file,
                         file_name=pdf_file,
+                        use_container_width=True,
                         key=f"download_{task_id}"
                     )
 
-                if st.button(
-                    "❌",
-                    key=f"delete_{task_id}"
-                ):
+                # ----------------- Delete Task -----------------
 
+                if btn3.button(
+                        "🗑️",
+                        use_container_width=True,
+                        key=f"delete_{task_id}"
+                ):
                     delete_task(task_id)
 
                     st.rerun()

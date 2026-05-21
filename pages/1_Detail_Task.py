@@ -11,6 +11,7 @@ from utils import (
     seconds_to_hours,
     calculate_amount,
     load_css,
+    page_header,
     hours_badge
 )
 
@@ -56,7 +57,10 @@ total_amount = calculate_amount(
 
 # ----------------- Top summary card --------------
 
-st.title("Task Detail")
+st.markdown(
+    page_header(),
+    unsafe_allow_html=True
+)
 
 with st.container(border=True):
 
@@ -212,6 +216,20 @@ with st.container(border=True):
         )
 
 # ----------------- Subtasks container --------------
+st.markdown(
+    """
+    <div style="
+        font-size:14px;
+        font-weight:600;
+        color:#E5E7EB;
+        margin-bottom:8px;
+        letter-spacing:0.3px;
+    ">
+        Subtasks
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.divider()
 

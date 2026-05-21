@@ -219,7 +219,7 @@ st.divider()
 st.markdown(
     """
     <div style="
-        font-size:17px;
+        font-size:18px;
         font-weight:600;
         color:#E5E7EB;
         margin-bottom:8px;
@@ -247,9 +247,24 @@ for idx, sub in enumerate(subtasks,start=1):
             unsafe_allow_html=True
         )
 
+        st.markdown(
+            f"""
+            <div style="
+                font-size:18px;
+                font-weight:700;
+                margin-bottom:6px;
+                color:#F9FAFB;
+            ">
+                #️⃣ {number}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         new_subtask_name = st.text_input(
-            f"#️⃣ {number}",
+            "Subtask",
             value=sub["subtask_name"],
+            label_visibility="collapsed",
             key=f"name_{sub['id']}"
         )
 

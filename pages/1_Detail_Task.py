@@ -287,6 +287,7 @@ for idx, sub in enumerate(subtasks,start=1):
 
         if col1.button(
                 "Update",
+                use_container_width=True,
                 key=f"update_{sub['id']}"
         ):
             updated_start = datetime.combine(
@@ -323,7 +324,8 @@ for idx, sub in enumerate(subtasks,start=1):
             st.rerun()
 
         if col2.button(
-                "Delete",
+                "🗑️",
+                use_container_width=True,
                 key=f"delete_{sub['id']}"
         ):
             delete_subtask(sub["id"])

@@ -92,14 +92,17 @@ for sub in subtasks:
             <div style="
                 width: fit-content;
                 margin-left: auto;
-                padding: 4px 10px;
-                border: 1px solid green;
-                border-radius: 4px;
-                color: green;
-                font-size: 12px;
-                font-weight: 600;
+                margin-bottom: 10px;
+                padding: 3px 7px;
+                background: rgba(34, 197, 94, 0.12);
+                border: 1px solid rgba(34, 197, 94, 0.45);
+                border-radius: 999px;
+                color: #4ADE80;
+                font-size: 11px;
+                font-weight: 700;
+                backdrop-filter: blur(6px);
             ">
-                {subtask_hours} hrs
+                ⏱ {subtask_hours} hrs
             </div>
             """,
             unsafe_allow_html=True

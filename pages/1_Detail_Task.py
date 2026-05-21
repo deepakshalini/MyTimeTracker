@@ -4,7 +4,8 @@ from datetime import datetime
 from database import (
     get_tasks,
     get_subtasks,
-    update_subtask
+    update_subtask,
+    delete_subtask,
 )
 
 from utils import (
@@ -212,6 +213,9 @@ with st.container(border=True):
         )
 
 # ----------------- Subtasks container --------------
+
+st.divider()
+
 st.markdown(
     """
     <div style="
@@ -227,9 +231,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.divider()
+for idx, sub in enumerate(subtasks,start=1):
 
-for sub in subtasks:
+    number = len(subtasks) - idx + 1
 
     with st.container(border=True):
 
@@ -244,7 +248,7 @@ for sub in subtasks:
         )
 
         new_subtask_name = st.text_input(
-            "Subtask",
+            f"Subtask {number}",
             value=sub["subtask_name"],
             key=f"name_{sub['id']}"
         )
@@ -279,11 +283,12 @@ for sub in subtasks:
             key=f"end_{sub['id']}"
         )
 
-        if st.button(
-            "Update",
-            key=f"update_{sub['id']}"
-        ):
+        col1, col2 = st.columns(2)
 
+        if col1.button(
+                "Update",
+                key=f"update_{sub['id']}"
+        ):
             updated_start = datetime.combine(
                 start_datetime.date(),
                 new_start
@@ -296,7 +301,7 @@ for sub in subtasks:
 
             total_seconds = int(
                 (
-                    updated_end - updated_start
+                        updated_end - updated_start
                 ).total_seconds()
             )
 
@@ -314,5 +319,15 @@ for sub in subtasks:
             )
 
             st.success("Updated")
+
+            st.rerun()
+
+        if col2.button(
+                "Delete",
+                key=f"delete_{sub['id']}"
+        ):
+            delete_subtask(sub["id"])
+
+            st.success("Deleted")
 
             st.rerun()

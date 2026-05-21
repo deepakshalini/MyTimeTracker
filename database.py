@@ -190,3 +190,13 @@ def update_subtask(
         "id",
         subtask_id
     ).execute()
+
+
+def delete_subtask(subtask_id):
+
+    supabase.table(
+        "subtasks"
+    ).delete().eq(
+        "id",
+        subtask_id
+    ).execute()

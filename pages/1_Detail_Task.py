@@ -60,119 +60,156 @@ st.title("Task Detail")
 
 with st.container(border=True):
 
+    st.markdown(
+        """
+        <div style="
+            font-size:13px;
+            color:#9CA3AF;
+            margin-bottom:18px;
+            letter-spacing:0.3px;
+            font-weight:600;
+        ">
+            TASK SUMMARY
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     row1_col1, row1_col2, row1_col3 = st.columns(3)
 
-    row1_col1.markdown(
+    with row1_col1:
+
+        st.markdown(
+            """
+            <div class="summary-label">
+                Client
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f"""
+            <div class="summary-value">
+                {task['client_name']}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with row1_col2:
+
+        st.markdown(
+            """
+            <div class="summary-label">
+                Main Task
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f"""
+            <div class="summary-value">
+                {task['task_name']}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with row1_col3:
+
+        st.markdown(
+            """
+            <div class="summary-label">
+                Subtasks
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f"""
+            <div class="summary-value">
+                {len(subtasks)}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown(
         """
-        <div class="summary-label">
-            Client
-        </div>
+        <hr style="
+            margin-top:18px;
+            margin-bottom:18px;
+            border:none;
+            border-top:1px solid rgba(255,255,255,0.08);
+        ">
         """,
         unsafe_allow_html=True
     )
-
-    row1_col1.markdown(
-        f"""
-        <div class="summary-value">
-            {task['client_name']}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    row1_col2.markdown(
-        """
-        <div class="summary-label">
-            Main Task
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    row1_col2.markdown(
-        f"""
-        <div class="summary-value">
-            {task['task_name']}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    row1_col3.markdown(
-        """
-        <div class="summary-label">
-            Subtasks
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    row1_col3.markdown(
-        f"""
-        <div class="summary-value">
-            {len(subtasks)}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.divider()
 
     row2_col1, row2_col2, row2_col3 = st.columns(3)
 
-    row2_col1.markdown(
-        """
-        <div class="summary-label">
-            Hourly Rate
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    with row2_col1:
 
-    row2_col1.markdown(
-        f"""
-        <div class="summary-value">
-            ${task['hourly_rate']}/hr
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            """
+            <div class="summary-label">
+                Hourly Rate
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    row2_col2.markdown(
-        """
-        <div class="summary-label">
-            Total Hours
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f"""
+            <div class="summary-value">
+                ${task['hourly_rate']}/hr
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    row2_col2.markdown(
-        f"""
-        <div class="summary-value">
-            {total_hours}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    with row2_col2:
 
-    row2_col3.markdown(
-        """
-        <div class="summary-label">
-            Total Amount
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            """
+            <div class="summary-label">
+                Total Hours
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    row2_col3.markdown(
-        f"""
-        <div class="summary-value summary-amount">
-            ${total_amount}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f"""
+            <div class="summary-value">
+                {total_hours}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with row2_col3:
+
+        st.markdown(
+            """
+            <div class="summary-label">
+                Total Amount
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f"""
+            <div class="summary-value summary-amount">
+                ${total_amount}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # ----------------- Subtasks container --------------
 

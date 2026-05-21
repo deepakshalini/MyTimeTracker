@@ -283,7 +283,7 @@ for idx, sub in enumerate(subtasks,start=1):
             key=f"end_{sub['id']}"
         )
 
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns([5,1])
 
         if col1.button(
                 "Update",

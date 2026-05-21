@@ -9,8 +9,13 @@ from database import (
 
 from utils import (
     seconds_to_hours,
-    calculate_amount
+    calculate_amount,
+    load_css,
+    hours_badge,
+    summary_card
 )
+
+load_css()
 
 query_params = st.query_params
 
@@ -50,31 +55,21 @@ total_amount = calculate_amount(
     task["hourly_rate"]
 )
 
+# ----------------- Top summary card --------------
+
 st.title("Task Detail")
 
-st.write(
-    f"Client: {task['client_name']}"
+st.markdown(
+    summary_card(
+        task,
+        subtasks,
+        total_hours,
+        total_amount
+    ),
+    unsafe_allow_html=True
 )
 
-st.write(
-    f"Task: {task['task_name']}"
-)
-
-st.write(
-    f"Total Subtasks: {len(subtasks)}"
-)
-
-st.write(
-    f"Hourly Rate: ${task['hourly_rate']}"
-)
-
-st.write(
-    f"Total Hours: {total_hours}"
-)
-
-st.write(
-    f"Total Amount: ${total_amount}"
-)
+# ----------------- Subtasks container --------------
 
 st.divider()
 
@@ -88,23 +83,7 @@ for sub in subtasks:
         )
 
         st.markdown(
-            f"""
-            <div style="
-                width: fit-content;
-                margin-left: auto;
-                margin-bottom: 10px;
-                padding: 3px 7px;
-                background: rgba(34, 197, 94, 0.12);
-                border: 1px solid rgba(34, 197, 94, 0.45);
-                border-radius: 999px;
-                color: #4ADE80;
-                font-size: 11px;
-                font-weight: 700;
-                backdrop-filter: blur(6px);
-            ">
-                ⏱ {subtask_hours} hrs
-            </div>
-            """,
+            hours_badge(subtask_hours),
             unsafe_allow_html=True
         )
 

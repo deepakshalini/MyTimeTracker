@@ -174,7 +174,7 @@ else:
                 # ----------------- Delete Task -----------------
 
                 if btn3.button(
-                        "🗑⛔",
+                        "⛔",
                         use_container_width=True,
                         key=f"delete_{task_id}"
                 ):

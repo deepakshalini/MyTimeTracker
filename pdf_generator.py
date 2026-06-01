@@ -306,7 +306,7 @@ def generate_pdf(
     elements.append(Spacer(1, 16))
 
     # ======================================================================
-    # PROJECT SUMMARY (Strictly Aligned Side-by-Side Dynamic Height Grid)
+    # PROJECT SUMMARY (Left Meta Block vs Right Stacked Cards - Perfectly Calibrated Height)
     # ======================================================================
 
     sorted_subs = sorted(subtasks, key=lambda x: x["start_time"])
@@ -320,89 +320,80 @@ def generate_pdf(
 
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    # Helper function for left information side (explicit matching heights)
-    def info_inner_row(icon_name, label, value):
-        return Table(
-            [
-                [
-                    icon(icon_name, 13),
-                    Paragraph(
-                        f'<font size=8.5 color="{SUBTEXT}"><b>{label}</b></font>',
-                        styles["BodyText"],
-                    ),
-                    Paragraph(
-                        f'<font size=8.5 color="{TEXT}">{value}</font>',
-                        styles["BodyText"],
-                    ),
-                ]
-            ],
-            colWidths=[18, 87, 135],
-        )
+    # LEFT SIDE: 5 Meta Rows. Enforced Row Height = 22pt. Total height = 110pt
+    def left_info_row(icon_name, label, value):
+        return [
+            Table(
+                [[icon(icon_name, 13), Paragraph(f'<b>{label}</b>', small_style)]],
+                colWidths=[18, 92]
+            ),
+            Paragraph(value, body_style)
+        ]
 
-    # Helper function for right card metrics (explicit matching heights)
-    def summary_inner_card(icon_name, label, value):
-        lbl_p = Paragraph(
-            f'<font size=8 color="{PRIMARY}"><b>{label}</b></font>',
-            styles["BodyText"],
-        )
-        val_p = Paragraph(
-            f'<para alignment="right"><font size=13 color="{TEXT}"><b>{value}</b></font></para>',
-            styles["BodyText"],
-        )
-        t = Table([[icon(icon_name, 15), lbl_p, val_p]], colWidths=[20, 110, 130])
-        t.setStyle(
-            TableStyle(
-                [
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
-                    ("BOX", (0, 0), (-1, -1), 0.5, _hex(BORDER_CLR)),
-                    ("TOPPADDING", (0, 0), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ]
-            )
-        )
-        return t
-
-    # Single master layout row heights match identically on both sides
-    summary_grid_data = [
-        [
-            info_inner_row("user.png", "Client", task["client_name"]),
-            summary_inner_card("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
-        ],
-        [
-            info_inner_row("work.png", "Project", task["task_name"]),
-            summary_inner_card("money.png", "FINAL AMOUNT", f"${total_amount}"),
-        ],
-        [
-            info_inner_row("calendar.png", "Period", period_str),
-            summary_inner_card("chart.png", "AVG SESSION", f"{avg_session} hrs"),
-        ],
-        [
-            info_inner_row("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
-            "",
-        ],
-        [
-            info_inner_row("subtask.png", "Subtasks Completed", str(len(subtasks))),
-            "",
-        ],
+    left_table_data = [
+        left_info_row("user.png", "Client", task["client_name"]),
+        left_info_row("work.png", "Project", task["task_name"]),
+        left_info_row("calendar.png", "Period", period_str),
+        left_info_row("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
+        left_info_row("subtask.png", "Subtasks Completed", str(len(subtasks))),
     ]
 
-    # Explicit row heights enforced to avoid asymmetrical card sizing issues
-    row_heights = [30, 30, 30, 30, 30]
-    summary_section = Table(summary_grid_data, colWidths=[250, 270], rowHeights=row_heights)
-    summary_section.setStyle(
+    left_meta_table = Table(left_table_data, colWidths=[110, 130], rowHeights=[22]*5)
+    left_meta_table.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("SPAN", (1, 2), (1, 4)),
+                ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
+                ("BACKGROUND", (0, 0), (0, -1), _hex(LIGHT_BG)),
+                ("BACKGROUND", (1, 0), (1, -1), _hex(WHITE)),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    # RIGHT SIDE: 3 Metric rows stacking without gaps. Enforced Row Height = 36.66pt. Total height = 110pt
+    def right_metric_row(icon_name, label, value):
+        lbl_p = Paragraph(f'<font size=8 color="{PRIMARY}"><b>{label}</b></font>', styles["BodyText"])
+        val_p = Paragraph(f'<para alignment="right"><font size=13 color="{TEXT}"><b>{value}</b></font></para>', styles["BodyText"])
+        return [icon(icon_name, 15), lbl_p, val_p]
+
+    right_cards_data = [
+        right_metric_row("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
+        right_metric_row("money.png", "FINAL AMOUNT", f"${total_amount}"),
+        right_metric_row("clock.png", "AVG SESSION", f"{avg_session} hrs"),
+    ]
+
+    right_stack_table = Table(right_cards_data, colWidths=[22, 108, 110], rowHeights=[36.66]*3)
+    right_stack_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
+                ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    # MASTER WRAPPER: Separated with a clear 15pt horizontal gap/margin column so they never overlap
+    summary_section = Table(
+        [[left_meta_table, "", right_stack_table]],
+        colWidths=[240, 15, 240]
+    )
+    summary_section.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("GRID", (0, 0), (0, -1), 0.3, _hex(BORDER_CLR)),
-                ("BACKGROUND", (0, 0), (0, -1), _hex(WHITE)),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
@@ -413,10 +404,10 @@ def generate_pdf(
             [
                 ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
                 ("BACKGROUND", (0, 0), (-1, -1), _hex(WHITE)),
-                ("TOPPADDING", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 12),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
             ]
         )
     )
@@ -449,14 +440,8 @@ def generate_pdf(
         legend_rows.append(
             [
                 color_box,
-                Paragraph(
-                    f'<font size=7.5 color="{TEXT}">{label}</font>',
-                    styles["BodyText"],
-                ),
-                Paragraph(
-                    f'<font size=7.5 color="{SUBTEXT}">{val} hrs ({pct})</font>',
-                    styles["BodyText"],
-                ),
+                Paragraph(f'<font size=7.5 color="{TEXT}">{label}</font>', styles["BodyText"]),
+                Paragraph(f'<font size=7.5 color="{SUBTEXT}">{val} hrs ({pct})</font>', styles["BodyText"]),
             ]
         )
 
@@ -472,10 +457,7 @@ def generate_pdf(
         )
     )
 
-    pie_section = Table(
-        [[pie_chart, legend_table]],
-        colWidths=[112, 123],
-    )
+    pie_section = Table([[pie_chart, legend_table]], colWidths=[112, 123])
     pie_section.setStyle(
         TableStyle(
             [
@@ -504,21 +486,14 @@ def generate_pdf(
 
     day_hours = defaultdict(float)
     for sub in sorted_subs:
-        day = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime(
-            "%d %b %Y"
-        )
+        day = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y")
         hrs = round((sub["total_seconds"] or 0) / 3600, 2)
         day_hours[day] += hrs
 
     bar_data = [(day, hrs) for day, hrs in sorted(day_hours.items())]
     max_bar = max(h for _, h in bar_data) if bar_data else 4
     bar_chart_h = max(110, len(bar_data) * 32)
-    bar_chart = HBarChart(
-        bar_data,
-        max_val=max(max_bar + 0.5, 4),
-        width=HALF - 24,
-        height=bar_chart_h,
-    )
+    bar_chart = HBarChart(bar_data, max_val=max(max_bar + 0.5, 4), width=HALF - 24, height=bar_chart_h)
 
     timeline_card = Table([[bar_chart]], colWidths=[HALF - 10])
     timeline_card.setStyle(
@@ -536,15 +511,10 @@ def generate_pdf(
 
     def chart_section(header_icon, header_title, card, width):
         hdr = section_header(header_icon, header_title, 18)
-        t = Table([[hdr], [Spacer(1, 6)], [card]], colWidths=[width])
-        return t
+        return Table([[hdr], [Spacer(1, 6)], [card]], colWidths=[width])
 
-    dist_block = chart_section(
-        "clipboard.png", "WORK DISTRIBUTION", dist_card, HALF - 10
-    )
-    timeline_block = chart_section(
-        "calendar.png", "WORK TIMELINE (BY DATE)", timeline_card, HALF - 10
-    )
+    dist_block = chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, HALF - 10)
+    timeline_block = chart_section("calendar.png", "WORK TIMELINE (BY DATE)", timeline_card, HALF - 10)
 
     two_col = Table([[dist_block, timeline_block]], colWidths=[HALF, HALF])
     two_col.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
@@ -562,14 +532,8 @@ def generate_pdf(
     days_worked = len(day_hours)
 
     def insight_text_cell(label, value):
-        lbl_p = Paragraph(
-            f'<font size=8 color="{SUBTEXT}"><b>{label.upper()}</b></font>',
-            styles["BodyText"],
-        )
-        val_p = Paragraph(
-            f'<font size=15 color="{PRIMARY}"><b>{value}</b></font>',
-            styles["BodyText"],
-        )
+        lbl_p = Paragraph(f'<font size=8 color="{SUBTEXT}"><b>{label.upper()}</b></font>', styles["BodyText"])
+        val_p = Paragraph(f'<font size=15 color="{PRIMARY}"><b>{value}</b></font>', styles["BodyText"])
         t = Table([[lbl_p], [Spacer(1, 3)], [val_p]], colWidths=[PAGE_W / 4 - 15])
         t.setStyle(
             TableStyle(
@@ -585,14 +549,12 @@ def generate_pdf(
         return t
 
     insights_row = Table(
-        [
-            [
-                insight_text_cell("Total Sessions", str(sessions)),
-                insight_text_cell("Longest Session", f"{longest_hrs} hrs"),
-                insight_text_cell("Shortest Session", f"{shortest_hrs} hrs"),
-                insight_text_cell("Total Days Worked", str(days_worked)),
-            ]
-        ],
+        [[
+            insight_text_cell("Total Sessions", str(sessions)),
+            insight_text_cell("Longest Session", f"{longest_hrs} hrs"),
+            insight_text_cell("Shortest Session", f"{shortest_hrs} hrs"),
+            insight_text_cell("Total Days Worked", str(days_worked)),
+        ]],
         colWidths=[PAGE_W / 4] * 4,
     )
     insights_row.setStyle(
@@ -620,16 +582,7 @@ def generate_pdf(
     elements.append(section_header("clipboard.png", "WORK LOG DETAILS"))
     elements.append(Spacer(1, 8))
 
-    header_row = [
-        "#",
-        "Subtask",
-        "Description",
-        "Start",
-        "End",
-        "Duration",
-        "Hours",
-    ]
-
+    header_row = ["#", "Subtask", "Description", "Start", "End", "Duration", "Hours"]
     data = [header_row]
     for index, sub in enumerate(sorted_subs, start=1):
         secs = sub["total_seconds"] or 0
@@ -643,35 +596,21 @@ def generate_pdf(
         start_str = start_dt.strftime("%d %b %Y\n%I:%M %p")
         end_str = end_dt.strftime("%d %b %Y\n%I:%M %p")
 
-        data.append(
-            [
-                str(index),
-                Paragraph(sub["subtask_name"], body_style),
-                Paragraph(sub["description"], body_style),
-                start_str,
-                end_str,
-                duration_str,
-                str(hrs),
-            ]
-        )
+        data.append([
+            str(index),
+            Paragraph(sub["subtask_name"], body_style),
+            Paragraph(sub["description"], body_style),
+            start_str,
+            end_str,
+            duration_str,
+            str(hrs),
+        ])
 
-    data.append(
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            Paragraph(
-                f'<font size=9 color="{WHITE}"><b>TOTAL</b></font>',
-                styles["BodyText"],
-            ),
-            Paragraph(
-                f'<font size=9 color="{WHITE}"><b>{total_hours}</b></font>',
-                styles["BodyText"],
-            ),
-        ]
-    )
+    data.append([
+        "", "", "", "", "",
+        Paragraph(f'<font size=9 color="{WHITE}"><b>TOTAL</b></font>', styles["BodyText"]),
+        Paragraph(f'<font size=9 color="{WHITE}"><b>{total_hours}</b></font>', styles["BodyText"]),
+    ])
 
     col_widths = [24, 82, 140, 65, 65, 52, 42]
     table = Table(data, colWidths=col_widths)
@@ -717,18 +656,10 @@ def generate_pdf(
         def del_list(items):
             rows = []
             for item in items:
-                rows.append(
-                    [
-                        Paragraph(
-                            f'<font size=11 color="{PRIMARY}"><b>✔</b></font>',
-                            styles["BodyText"],
-                        ),
-                        Paragraph(
-                            f'<font size=8.5 color="{TEXT}">{item}</font>',
-                            styles["BodyText"],
-                        ),
-                    ]
-                )
+                rows.append([
+                    Paragraph(f'<font size=11 color="{PRIMARY}"><b>✔</b></font>', styles["BodyText"]),
+                    Paragraph(f'<font size=8.5 color="{TEXT}">{item}</font>', styles["BodyText"]),
+                ])
             t = Table(rows, colWidths=[16, HALF - 30])
             t.setStyle(
                 TableStyle(
@@ -741,10 +672,7 @@ def generate_pdf(
             )
             return t
 
-        del_row = Table(
-            [[del_list(left_del), del_list(right_del)]],
-            colWidths=[half, half],
-        )
+        del_row = Table([[del_list(left_del), del_list(right_del)]], colWidths=[half, half])
         del_card = Table([[del_row]], colWidths=[PAGE_W])
         del_card.setStyle(
             TableStyle(
@@ -765,19 +693,17 @@ def generate_pdf(
     # ======================================================================
 
     thank_inner = Table(
-        [
-            [
-                icon("thumb.png", 28),
-                Paragraph(
-                    f'<font size=11 color="{PRIMARY}"><b>Thank you for your business!</b></font>'
-                    f'<br/><br/>'
-                    f'<font size=8.5 color="{SUBTEXT}">If you have any questions regarding this report,'
-                    f' please feel free to reach out.</font>',
-                    styles["BodyText"],
-                ),
-                icon("people.png", 60),
-            ]
-        ],
+        [[
+            icon("thumb.png", 28),
+            Paragraph(
+                f'<font size=11 color="{PRIMARY}"><b>Thank you for your business!</b></font>'
+                f'<br/><br/>'
+                f'<font size=8.5 color="{SUBTEXT}">If you have any questions regarding this report,'
+                f' please feel free to reach out.</font>',
+                styles["BodyText"],
+            ),
+            icon("people.png", 60),
+        ]],
         colWidths=[40, PAGE_W - 110, 70],
     )
     thank_inner.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))

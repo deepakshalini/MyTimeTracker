@@ -306,7 +306,7 @@ def generate_pdf(
     elements.append(Spacer(1, 16))
 
     # ======================================================================
-    # PROJECT SUMMARY (Left Meta Table | Right Vertically Stacked Metric Cards)
+    # PROJECT SUMMARY (Strictly Aligned Side-by-Side Dynamic Height Grid)
     # ======================================================================
 
     sorted_subs = sorted(subtasks, key=lambda x: x["start_time"])
@@ -320,105 +320,97 @@ def generate_pdf(
 
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    def info_icon_row(icon_name, label, value):
-        return [
-            Table(
-                [
-                    [
-                        icon(icon_name, 13),
-                        Paragraph(
-                            f'<font size=8.5 color="{SUBTEXT}"><b>{label}</b></font>',
-                            styles["BodyText"],
-                        ),
-                    ]
-                ],
-                colWidths=[18, 80],
-            ),
-            Paragraph(
-                f'<font size=8.5 color="{TEXT}">{value}</font>',
-                styles["BodyText"],
-            ),
-        ]
-
-    client_rows = [
-        info_icon_row("user.png", "Client", task["client_name"]),
-        info_icon_row("work.png", "Project", task["task_name"]),
-        info_icon_row("calendar.png", "Period", period_str),
-        info_icon_row(
-            "money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"
-        ),
-        info_icon_row("check.png", "Subtasks Completed", str(len(subtasks))),
-    ]
-
-    left_info = Table(client_rows, colWidths=[110, 120])
-    left_info.setStyle(
-        TableStyle(
+    # Helper function for left information side (explicit matching heights)
+    def info_inner_row(icon_name, label, value):
+        return Table(
             [
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("GRID", (0, 0), (-1, -1), 0.3, _hex(BORDER_CLR)),
-                ("BACKGROUND", (0, 0), (0, -1), _hex(LIGHT_BG)),
-            ]
+                [
+                    icon(icon_name, 13),
+                    Paragraph(
+                        f'<font size=8.5 color="{SUBTEXT}"><b>{label}</b></font>',
+                        styles["BodyText"],
+                    ),
+                    Paragraph(
+                        f'<font size=8.5 color="{TEXT}">{value}</font>',
+                        styles["BodyText"],
+                    ),
+                ]
+            ],
+            colWidths=[18, 87, 135],
         )
-    )
 
-    def summary_row_card(label, value):
-        p_label = Paragraph(
+    # Helper function for right card metrics (explicit matching heights)
+    def summary_inner_card(icon_name, label, value):
+        lbl_p = Paragraph(
             f'<font size=8 color="{PRIMARY}"><b>{label}</b></font>',
             styles["BodyText"],
         )
-        p_val = Paragraph(
-            f'<para alignment="right"><font size=14 color="{TEXT}"><b>{value}</b></font></para>',
+        val_p = Paragraph(
+            f'<para alignment="right"><font size=13 color="{TEXT}"><b>{value}</b></font></para>',
             styles["BodyText"],
         )
-        t = Table([[p_label, p_val]], colWidths=[120, 130])
+        t = Table([[icon(icon_name, 15), lbl_p, val_p]], colWidths=[20, 110, 130])
         t.setStyle(
             TableStyle(
                 [
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
                     ("BOX", (0, 0), (-1, -1), 0.5, _hex(BORDER_CLR)),
-                    ("TOPPADDING", (0, 0), (-1, -1), 7),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ]
             )
         )
         return t
 
-    # Placed in a nested layout table stacked vertically
-    vertical_cards = Table(
+    # Single master layout row heights match identically on both sides
+    summary_grid_data = [
         [
-            [summary_row_card("TOTAL HOURS", f"{total_hours} hrs")],
-            [Spacer(1, 4)],
-            [summary_row_card("FINAL AMOUNT", f"${total_amount}")],
-            [Spacer(1, 4)],
-            [summary_row_card("AVG SESSION", f"{avg_session} hrs")],
+            info_inner_row("user.png", "Client", task["client_name"]),
+            summary_inner_card("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
         ],
-        colWidths=[260],
-    )
-    vertical_cards.setStyle(
+        [
+            info_inner_row("work.png", "Project", task["task_name"]),
+            summary_inner_card("money.png", "FINAL AMOUNT", f"${total_amount}"),
+        ],
+        [
+            info_inner_row("calendar.png", "Period", period_str),
+            summary_inner_card("chart.png", "AVG SESSION", f"{avg_session} hrs"),
+        ],
+        [
+            info_inner_row("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
+            "",
+        ],
+        [
+            info_inner_row("subtask.png", "Subtasks Completed", str(len(subtasks))),
+            "",
+        ],
+    ]
+
+    # Explicit row heights enforced to avoid asymmetrical card sizing issues
+    row_heights = [30, 30, 30, 30, 30]
+    summary_section = Table(summary_grid_data, colWidths=[250, 270], rowHeights=row_heights)
+    summary_section.setStyle(
         TableStyle(
             [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("SPAN", (1, 2), (1, 4)),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("GRID", (0, 0), (0, -1), 0.3, _hex(BORDER_CLR)),
+                ("BACKGROUND", (0, 0), (0, -1), _hex(WHITE)),
             ]
         )
     )
 
-    summary_section = Table(
-        [[left_info, vertical_cards]],
-        colWidths=[240, 280],
-    )
-    summary_section.setStyle(
+    outer_summary_card = Table([[summary_section]], colWidths=[PAGE_W])
+    outer_summary_card.setStyle(
         TableStyle(
             [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
                 ("BACKGROUND", (0, 0), (-1, -1), _hex(WHITE)),
                 ("TOPPADDING", (0, 0), (-1, -1), 10),
@@ -431,7 +423,7 @@ def generate_pdf(
 
     elements.append(section_header("clipboard.png", "PROJECT SUMMARY"))
     elements.append(Spacer(1, 6))
-    elements.append(summary_section)
+    elements.append(outer_summary_card)
     elements.append(Spacer(1, 16))
 
     # ======================================================================
@@ -560,7 +552,7 @@ def generate_pdf(
     elements.append(Spacer(1, 16))
 
     # ======================================================================
-    # PRODUCTIVITY INSIGHTS (No Icons - Streamlined Table Layout)
+    # PRODUCTIVITY INSIGHTS
     # ======================================================================
 
     sessions = len(subtasks)
@@ -806,7 +798,7 @@ def generate_pdf(
     elements.append(Spacer(1, 24))
 
     # ======================================================================
-    # FOOTER (Stripped Down Metadata - Attribution Row Only)
+    # FOOTER
     # ======================================================================
 
     elements.append(HRFlowable(width="100%", thickness=1, color=_hex(PRIMARY)))

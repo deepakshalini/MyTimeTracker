@@ -18,12 +18,9 @@ from utils import (
     calculate_amount,
 )
 
-st.set_page_config(
-    page_title="Deepak | Time Tracker"
-)
 
 st.set_page_config(
-    page_title="Time Tracker",
+    page_title="Deepak | Time Tracker",
     layout="wide"
 )
 

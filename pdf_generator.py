@@ -79,7 +79,6 @@ def _hex(h):
 
 
 def section_header(icon_name, title_text, icon_size=20):
-    """Returns a Table row used as a section title."""
     ico = icon(icon_name, icon_size)
     para = Paragraph(
         f'<font size=13 color="{PRIMARY}"><b>{title_text}</b></font>',
@@ -233,7 +232,7 @@ def generate_pdf(
     )
 
     # ======================================================================
-    # HEADER (Text Title Only - No Icon, No ID)
+    # HEADER
     # ======================================================================
 
     title_para = Paragraph(
@@ -306,7 +305,7 @@ def generate_pdf(
     elements.append(Spacer(1, 16))
 
     # ======================================================================
-    # PROJECT SUMMARY (Left Meta Block vs Right Stacked Cards - Perfectly Calibrated Height)
+    # PROJECT SUMMARY
     # ======================================================================
 
     sorted_subs = sorted(subtasks, key=lambda x: x["start_time"])
@@ -320,7 +319,7 @@ def generate_pdf(
 
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    # LEFT SIDE: 5 Meta Rows. Enforced Row Height = 22pt. Total height = 110pt
+    # LEFT SIDE: 5 Meta Rows. Height = 22pt each (Total = 110pt)
     def left_info_row(icon_name, label, value):
         return [
             Table(
@@ -354,10 +353,10 @@ def generate_pdf(
         )
     )
 
-    # RIGHT SIDE: 3 Metric rows stacking without gaps. Enforced Row Height = 36.66pt. Total height = 110pt
+    # RIGHT SIDE: 3 Metrics Stacked (No gaps). Height = 36.66pt each (Total = 110pt)
     def right_metric_row(icon_name, label, value):
         lbl_p = Paragraph(f'<font size=8 color="{PRIMARY}"><b>{label}</b></font>', styles["BodyText"])
-        val_p = Paragraph(f'<para alignment="right"><font size=13 color="{TEXT}"><b>{value}</b></font></para>', styles["BodyText"])
+        val_p = Paragraph(f'<para alignment="right"><b>{value}</b></para>', body_style)
         return [icon(icon_name, 15), lbl_p, val_p]
 
     right_cards_data = [
@@ -366,22 +365,25 @@ def generate_pdf(
         right_metric_row("clock.png", "AVG SESSION", f"{avg_session} hrs"),
     ]
 
-    right_stack_table = Table(right_cards_data, colWidths=[22, 108, 110], rowHeights=[36.66]*3)
+    # Explicit, safe column boundaries to stop alignment/overlapping issues completely
+    right_stack_table = Table(right_cards_data, colWidths=[28, 112, 100], rowHeights=[36.66]*3)
     right_stack_table.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
                 ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("ALIGN", (0, 0), (0, -1), "LEFT"),       # Keep icons strictly aligned left
+                ("LEFTPADDING", (0, 0), (0, -1), 10),     # Safe left margin for icons away from card boundary
+                ("LEFTPADDING", (1, 0), (1, -1), 2),      # Label starting distance
+                ("RIGHTPADDING", (2, 0), (2, -1), 12),    # Safe padding buffer on right side for values
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
 
-    # MASTER WRAPPER: Separated with a clear 15pt horizontal gap/margin column so they never overlap
+    # MASTER WRAPPER: Explicit 15pt gutter column space separation
     summary_section = Table(
         [[left_meta_table, "", right_stack_table]],
         colWidths=[240, 15, 240]

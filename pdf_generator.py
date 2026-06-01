@@ -37,6 +37,7 @@ BADGE_AMBER_TXT = "#92400E"  # Elegant deep amber text
 
 STRIPE_ROW = "#F0FDFA"  # Alternating row background
 LIGHT_GRAY = "#F9FAFB"  # Section metric backgrounds
+LIGHT_BORDER_MUTE = "#E5E7EB"  # Elegant soft gray for structural rules
 
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
@@ -82,9 +83,7 @@ def client_avatar(name, size=18):
     """Generates an elegant colored circle with the client's letter initial."""
     initial = name[0].upper() if name else "C"
     d = Drawing(size, size)
-    # Background Circle
     d.add(Circle(size / 2, size / 2, size / 2, fillColor=colors.HexColor(PRIMARY), strokeColor=None))
-    # Typography Initial
     d.add(String(size / 2, (size / 2) - 2.5, initial, textAnchor="middle", fontName="Helvetica-Bold", fontSize=8.5,
                  fillColor=colors.white))
     return d
@@ -99,7 +98,7 @@ def status_badge(text, style_type="success"):
                   styles["BodyText"])
     t = Table([[p]], colWidths=[65])
     t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(bg)),
+        ("BACKGROUND", (0, 0), (-1, -1), _hex(bg)),
         ("ROUNDEDCORNERS", [3]),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
@@ -126,6 +125,10 @@ def section_header(icon_name, title_text, icon_size=18):
     return t
 
 
+def _hex(h):
+    return colors.HexColor(h)
+
+
 # ---------------------------------------------------------------------------
 # Custom Flowable Charts (Pie & HBar)
 # ---------------------------------------------------------------------------
@@ -147,7 +150,7 @@ class PieChart(Flowable):
         for label, value, clr in self.slices:
             sweep = 360.0 * value / total
             end_deg = start_deg - sweep
-            c.setFillColor(colors.HexColor(clr))
+            c.setFillColor(_hex(clr))
             c.setStrokeColor(colors.white)
             c.setLineWidth(1.5)
 
@@ -188,11 +191,11 @@ class HBarChart(Flowable):
 
         tick_vals = [0, 1, 2, 3, 4]
         c.setFont("Helvetica", 7)
-        c.setFillColor(colors.HexColor(SUBTEXT))
+        c.setFillColor(_hex(SUBTEXT))
         for tv in tick_vals:
             x = left_off + (tv / self.max_val) * bar_area_w
             c.drawCentredString(x, 4, str(tv))
-            c.setStrokeColor(colors.HexColor(BORDER_CLR))
+            c.setStrokeColor(_hex(BORDER_CLR))
             c.setLineWidth(0.5)
             c.line(x, 15, x, self.height - 5)
 
@@ -201,14 +204,14 @@ class HBarChart(Flowable):
             bar_w = (value / self.max_val) * bar_area_w
 
             c.setFont("Helvetica", 8)
-            c.setFillColor(colors.HexColor(TEXT))
+            c.setFillColor(_hex(TEXT))
             c.drawRightString(left_off - 6, y_center - 3, label)
 
-            c.setFillColor(colors.HexColor(self.bar_color))
+            c.setFillColor(_hex(self.bar_color))
             c.rect(left_off, y_center - bar_h / 2, bar_w, bar_h, fill=1, stroke=0)
 
             c.setFont("Helvetica-Bold", 8)
-            c.setFillColor(colors.HexColor(TEXT))
+            c.setFillColor(_hex(TEXT))
             c.drawString(left_off + bar_w + 4, y_center - 3, f"{value} hrs")
 
 
@@ -217,7 +220,6 @@ class HBarChart(Flowable):
 # ---------------------------------------------------------------------------
 
 def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=None, deliverables=None):
-    # Safe cleanup of old instances
     for pdf in Path(".").glob("*.pdf"):
         if pdf.name == filename:
             pdf.unlink(missing_ok=True)
@@ -233,7 +235,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     elements = []
     PAGE_W = A4[0] - 60
-    HALF = PAGE_W / 2 - 5
+
+    # Precise multi-column layout split to ensure total alignment across elements
+    HALF_COL_W = PAGE_W / 2
 
     now_str = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y %I:%M %p")
 
@@ -264,11 +268,12 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         f'<para alignment="right"><font size=8.5 color="{TEXT}"><b>Prepared By:</b> {task.get("prepared_by", "Team Shalini")}</font></para>',
         styles["BodyText"])
 
-    sub_header = Table([[gen_cell, prep_cell]], colWidths=[HALF, HALF])
-    sub_header.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
+    sub_header = Table([[gen_cell, prep_cell]], colWidths=[HALF_COL_W, HALF_COL_W])
+    sub_header.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                                    ("RIGHTPADDING", (0, 0), (-1, -1), 0)]))
     elements.append(sub_header)
     elements.append(Spacer(1, 6))
-    elements.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor(PRIMARY)))
+    elements.append(HRFlowable(width="100%", thickness=1.5, color=_hex(PRIMARY)))
     elements.append(Spacer(1, 14))
 
     # ======================================================================
@@ -283,13 +288,13 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(section_header("clipboard.png", "PROJECT SUMMARY"))
     elements.append(Spacer(1, 6))
 
-    # High-fidelity uniform row cell builder
     def meta_item(icon_flowable, label, value_flowable):
         lbl_p = Table([[icon_flowable, Paragraph(f"<b>{label}</b>", small_style)]], colWidths=[16, 94])
         lbl_p.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
         return [lbl_p, value_flowable]
 
-    card1_data = [
+    # Exactly fills internal width printable boundary
+    card1_table = Table([
         meta_item(client_avatar(task["client_name"], 13), "Client", Paragraph(task["client_name"], body_style)) +
         meta_item(icon("calendar.png", 13), "Period", Paragraph(period_str, body_style)),
 
@@ -298,14 +303,13 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
         meta_item(icon("money.png", 13), "Hourly Rate", Paragraph(f"${task['hourly_rate']:.2f} /hr", body_style)) +
         meta_item(icon("money.png", 13), "Payment Status", status_badge("Pending", style_type="warning")),
-    ]
+    ], colWidths=[110, 147, 110, 147], rowHeights=[24, 24, 24])
 
-    card1_table = Table(card1_data, colWidths=[110, 147, 110, 147], rowHeights=[24, 24, 24])
     card1_table.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor(BORDER_CLR)),
-        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor(LIGHT_BG)),
-        ("BACKGROUND", (2, 0), (2, -1), colors.HexColor(LIGHT_BG)),
+        ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
+        ("BACKGROUND", (0, 0), (0, -1), _hex(LIGHT_BG)),
+        ("BACKGROUND", (2, 0), (2, -1), _hex(LIGHT_BG)),
         ("BACKGROUND", (1, 0), (1, -1), colors.white),
         ("BACKGROUND", (3, 0), (3, -1), colors.white),
         ("LEFTPADDING", (0, 0), (-1, -1), 8),
@@ -314,7 +318,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     outer_card1 = Table([[card1_table]], colWidths=[PAGE_W])
     outer_card1.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
+        ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
         ("BACKGROUND", (0, 0), (-1, -1), colors.white),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
@@ -334,28 +338,29 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         text_stack.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
                                         ("TOPPADDING", (0, 0), (-1, -1), 0)]))
 
-        block = Table([[icon(icon_name, 16), text_stack]], colWidths=[24, 146])
+        block = Table(
+            [[icon("clock.png" if "HOURS" in key_text or "SESSION" in key_text else "money.png", 16), text_stack]],
+            colWidths=[24, 146])
         block.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
         return block
 
-    card2_data = [[
+    card2_table = Table([[
         metric_sub_block("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
         metric_sub_block("money.png", "FINAL AMOUNT", f"${total_amount}"),
         metric_sub_block("clock.png", "AVG SESSION", f"{avg_session} hrs"),
-    ]]
+    ]], colWidths=[171, 171, 172], rowHeights=[40])
 
-    card2_table = Table(card2_data, colWidths=[171, 171, 172], rowHeights=[40])
     card2_table.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(LIGHT_BG)),
-        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor(BORDER_CLR)),
+        ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
+        ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
         ("LEFTPADDING", (0, 0), (-1, -1), 12),
         ("RIGHTPADDING", (0, 0), (-1, -1), 12),
     ]))
 
     outer_card2 = Table([[card2_table]], colWidths=[PAGE_W])
     outer_card2.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
+        ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
         ("BACKGROUND", (0, 0), (-1, -1), colors.white),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
@@ -366,41 +371,47 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 14))
 
     # ======================================================================
-    # ANALYTICS DASHBOARD (TWO COLUMN)
+    # ANALYTICS DASHBOARD (TWO COLUMN - FLUSH BORDER REALIGNMENT)
     # ======================================================================
     pie_colors = [PRIMARY, "#4ADE80", "#A7F3D0", "#0D9488", "#6EE7B7"]
     pie_slices = [(sub["subtask_name"], round((sub["total_seconds"] or 0) / 3600, 2), pie_colors[i % len(pie_colors)])
                   for i, sub in enumerate(sorted_subs)]
 
-    pie_chart = PieChart(pie_slices, width=105, height=105)
+    # Internal component dimensions adjusted to sit inside perfectly balanced half widths
+    INNER_CARD_W = HALF_COL_W - 4  # accounted for parent padding offsets
 
+    pie_chart = PieChart(pie_slices, width=105, height=105)
     legend_rows = []
     total_h_sum = sum(s[1] for s in pie_slices)
     for label, val, clr in pie_slices:
         pct = f"{100 * val / total_h_sum:.1f}%" if total_h_sum else "0%"
         color_box = Table([[""]], colWidths=[7], rowHeights=[7])
-        color_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), colors.HexColor(clr))]))
+        color_box.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), _hex(clr))]))
         legend_rows.append([
             color_box,
             Paragraph(f'<font size=7.5 color="{TEXT}">{label}</font>', styles["BodyText"]),
             Paragraph(f'<font size=7.5 color="{SUBTEXT}">{val} hrs ({pct})</font>', styles["BodyText"]),
         ])
 
-    legend_table = Table(legend_rows, colWidths=[11, 69, 55])
+    legend_table = Table(legend_rows, colWidths=[11, 74, 55])
     legend_table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("TOPPADDING", (0, 0), (-1, -1), 3),
                                       ("BOTTOMPADDING", (0, 0), (-1, -1), 3), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
 
-    pie_section = Table([[pie_chart, legend_table]], colWidths=[108, 127])
+    pie_section = Table([[pie_chart, legend_table]], colWidths=[105, 140])
     pie_section.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
                                      ("RIGHTPADDING", (0, 0), (-1, -1), 0)]))
 
-    dist_card = Table([[pie_section]], colWidths=[HALF - 10])
-    dist_card.setStyle(TableStyle(
-        [("BACKGROUND", (0, 0), (-1, -1), colors.white), ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
-         ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-         ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]))
+    dist_card = Table([[pie_section]], colWidths=[INNER_CARD_W])
+    dist_card.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+        ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4)
+    ]))
 
-    # Timeline Parser
+    # Timeline Bar Parser
     day_hours = {}
     for sub in sorted_subs:
         day = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y")
@@ -409,21 +420,42 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     bar_data = [(day, hrs) for day, hrs in sorted(day_hours.items())]
     max_bar = max(h for _, h in bar_data) if bar_data else 4
     bar_chart_h = max(105, len(bar_data) * 32)
-    bar_chart = HBarChart(bar_data, max_val=max(max_bar + 0.5, 4), width=HALF - 24, height=bar_chart_h)
+    bar_chart = HBarChart(bar_data, max_val=max(max_bar + 0.5, 4), width=INNER_CARD_W - 16, height=bar_chart_h)
 
-    timeline_card = Table([[bar_chart]], colWidths=[HALF - 10])
-    timeline_card.setStyle(TableStyle(
-        [("BACKGROUND", (0, 0), (-1, -1), colors.white), ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
-         ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-         ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]))
+    timeline_card = Table([[bar_chart]], colWidths=[INNER_CARD_W])
+    timeline_card.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+        ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4)
+    ]))
 
     def chart_section(header_icon, header_title, card, width):
-        return Table([[section_header(header_icon, header_title, 16)], [Spacer(1, 4)], [card]], colWidths=[width])
+        # Zero-padded sub table layout to completely align outer edges with primary bounding columns
+        t_hdr = section_header(header_icon, header_title, 16)
+        t = Table([[t_hdr], [Spacer(1, 4)], [card]], colWidths=[width])
+        t.setStyle(TableStyle([
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        return t
 
-    two_col = Table([[chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, HALF - 10),
-                      chart_section("calendar.png", "WORK TIMELINE", timeline_card, HALF - 10)]],
-                    colWidths=[HALF, HALF])
-    two_col.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+    two_col = Table([
+        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
+         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
+    ], colWidths=[HALF_COL_W, HALF_COL_W])
+
+    two_col.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]))
     elements.append(two_col)
     elements.append(Spacer(1, 14))
 
@@ -452,9 +484,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 10),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(LIGHT_GRAY)),
-        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor(BORDER_CLR)),
-        ("LINEABOVE", (0, 0), (-1, -1), 1.5, colors.HexColor(PRIMARY)),
+        ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_GRAY)),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.5, _hex(BORDER_CLR)),
+        ("LINEABOVE", (0, 0), (-1, -1), 1.5, _hex(PRIMARY)),
     ]))
 
     elements.append(section_header("chart.png", "PRODUCTIVITY INSIGHTS"))
@@ -463,7 +495,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 14))
 
     # ======================================================================
-    # WORK LOG DETAILS TABLE (With High-End Financial Right Alignments)
+    # WORK LOG DETAILS TABLE
     # ======================================================================
     elements.append(section_header("clipboard.png", "WORK LOG DETAILS"))
     elements.append(Spacer(1, 6))
@@ -489,7 +521,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
             Paragraph(f"{hrs:.2f}", body_right),
         ])
 
-    # Elegant Totals Bar
     data.append([
         "", "", "", "", "",
         Paragraph(f'<font size=9 color="{WHITE}"><b>TOTAL HOURS</b></font>', body_right),
@@ -500,23 +531,23 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     table = Table(data, colWidths=col_widths)
 
     tbl_style = [
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(PRIMARY)),
+        ("BACKGROUND", (0, 0), (-1, 0), _hex(PRIMARY)),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, 0), 8.5),
-        ("ALIGN", (0, 0), (0, -2), "CENTER"),  # Center indices only
+        ("ALIGN", (0, 0), (0, -2), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("GRID", (0, 0), (-1, -2), 0.4, colors.HexColor(BORDER_CLR)),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor(DARK_TEAL)),
+        ("GRID", (0, 0), (-1, -2), 0.4, _hex(BORDER_CLR)),
+        ("BACKGROUND", (0, -1), (-1, -1), _hex(DARK_TEAL)),
         ("SPAN", (0, -1), (4, -1)),
     ]
 
     for row in range(1, len(data) - 1):
-        bg = colors.white if row % 2 == 0 else colors.HexColor(STRIPE_ROW)
+        bg = colors.white if row % 2 == 0 else _hex(STRIPE_ROW)
         tbl_style.append(("BACKGROUND", (0, row), (-1, row), bg))
 
     table.setStyle(TableStyle(tbl_style))
@@ -536,16 +567,17 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         def del_list(items):
             rows = [[Paragraph(f'<font size=10 color="{PRIMARY}"><b>✔</b></font>', styles["BodyText"]),
                      Paragraph(f'<font size=8.5 color="{TEXT}">{item}</font>', styles["BodyText"])] for item in items]
-            t = Table(rows, colWidths=[14, HALF - 28])
+            t = Table(rows, colWidths=[14, HALF_COL_W - 28])
             t.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("TOPPADDING", (0, 0), (-1, -1), 4),
                                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
             return t
 
-        del_card = Table([[Table([[del_list(left_del), del_list(right_del)]], colWidths=[half, half])]],
-                         colWidths=[PAGE_W])
+        del_card = Table(
+            [[Table([[del_list(left_del), del_list(right_del)]], colWidths=[HALF_COL_W - 10, HALF_COL_W - 10])]],
+            colWidths=[PAGE_W])
         del_card.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(LIGHT_BG)),
-            ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
+            ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
+            ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
             ("TOPPADDING", (0, 0), (-1, -1), 10),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
             ("LEFTPADDING", (0, 0), (-1, -1), 10),
@@ -567,8 +599,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     thank_card = Table([[thank_inner]], colWidths=[PAGE_W])
     thank_card.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(LIGHT_BG)),
-        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BORDER_CLR)),
+        ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
+        ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
         ("TOPPADDING", (0, 0), (-1, -1), 12),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
         ("LEFTPADDING", (0, 0), (-1, -1), 12),
@@ -577,9 +609,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 20))
 
     # ======================================================================
-    # FOOTER BRANDING LINE
+    # FOOTER BRANDING LINE (CORRECTED MUTE BORDER WEIGHT AND COLOR)
     # ======================================================================
-    elements.append(HRFlowable(width="100%", thickness=0.8, color=colors.HexColor(PRIMARY)))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=_hex(LIGHT_BORDER_MUTE)))
     elements.append(Spacer(1, 6))
     elements.append(Paragraph(
         f'<para alignment="center"><font size=8 color="{SUBTEXT}">Generated using Time Tracker  •  Developed by Deepak Soni</font></para>',

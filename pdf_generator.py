@@ -319,104 +319,147 @@ def generate_pdf(
 
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    # LEFT SIDE: 5 Meta Rows. Height = 22pt each (Total = 110pt)
-    def left_info_row(icon_name, label, value):
+    elements.append(section_header("clipboard.png", "PROJECT SUMMARY"))
+    elements.append(Spacer(1, 6))
+
+    # ----------------------------------------------------------------------
+    # 1st CARD: Meta Data Grid (Full Width Alignment)
+    # ----------------------------------------------------------------------
+    def meta_item(icon_name, label, value):
         return [
             Table(
-                [[icon(icon_name, 13), Paragraph(f'<b>{label}</b>', small_style)]],
-                colWidths=[18, 92]
+                [[icon(icon_name, 13), Paragraph(f"<b>{label}</b>", small_style)]],
+                colWidths=[18, 92],
             ),
-            Paragraph(value, body_style)
+            Paragraph(value, body_style),
         ]
 
-    left_table_data = [
-        left_info_row("user.png", "Client", task["client_name"]),
-        left_info_row("work.png", "Project", task["task_name"]),
-        left_info_row("calendar.png", "Period", period_str),
-        left_info_row("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
-        left_info_row("subtask.png", "Subtasks Completed", str(len(subtasks))),
+    # Arranged horizontally into columns across the full card width
+    card1_data = [
+        meta_item("user.png", "Client", task["client_name"])
+        + meta_item("calendar.png", "Period", period_str),
+        meta_item("work.png", "Project", task["task_name"])
+        + meta_item("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
+        meta_item("subtask.png", "Subtasks", str(len(subtasks))) + ["", ""],
     ]
 
-    left_meta_table = Table(left_table_data, colWidths=[110, 130], rowHeights=[22]*5)
-    left_meta_table.setStyle(
+    card1_table = Table(
+        card1_data, colWidths=[110, 147, 110, 147], rowHeights=[22, 22]
+    )
+    card1_table.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
                 ("BACKGROUND", (0, 0), (0, -1), _hex(LIGHT_BG)),
+                ("BACKGROUND", (2, 0), (2, -1), _hex(LIGHT_BG)),
                 ("BACKGROUND", (1, 0), (1, -1), _hex(WHITE)),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("BACKGROUND", (3, 0), (3, -1), _hex(WHITE)),
+                ("SPAN", (2, 1), (3, 1)),  # Merge remaining empty space cell cleanly
+                ("BACKGROUND", (2, 1), (3, 1), _hex(WHITE)),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
 
-    # RIGHT SIDE: 3 Metrics Stacked (No gaps). Height = 36.66pt each (Total = 110pt)
-    def right_metric_row(icon_name, label, value):
-        lbl_p = Paragraph(f'<font size=8 color="{PRIMARY}"><b>{label}</b></font>', styles["BodyText"])
-        val_p = Paragraph(f'<para alignment="right"><b>{value}</b></para>', body_style)
-        return [icon(icon_name, 15), lbl_p, val_p]
+    # Wrap Card 1 in container matching the charts below perfectly
+    outer_card1 = Table([[card1_table]], colWidths=[PAGE_W])
+    outer_card1.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
+                ("BACKGROUND", (0, 0), (-1, -1), _hex(WHITE)),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ]
+        )
+    )
+    elements.append(outer_card1)
+    elements.append(Spacer(1, 10))  # Margin gap directly between Card 1 and Card 2
 
-    right_cards_data = [
-        right_metric_row("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
-        right_metric_row("money.png", "FINAL AMOUNT", f"${total_amount}"),
-        right_metric_row("clock.png", "AVG SESSION", f"{avg_session} hrs"),
+    # ----------------------------------------------------------------------
+    # 2nd CARD: Metric Layout Stack (icon | Key over Value)
+    # ----------------------------------------------------------------------
+    def metric_sub_block(icon_name, key_text, val_text):
+        lbl = Paragraph(
+            f'<font size=8 color="{PRIMARY}"><b>{key_text}</b></font>',
+            styles["BodyText"],
+        )
+        val = Paragraph(
+            f'<font size=13 color="{TEXT}"><b>{val_text}</b></font>',
+            styles["BodyText"],
+        )
+
+        # Right side: Stacked content element block
+        text_stack = Table([[lbl], [Spacer(1, 2)], [val]], colWidths=[140])
+        text_stack.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+
+        # Full horizontal combo matching requested architecture template [icon | content]
+        block = Table([[icon(icon_name, 18), text_stack]], colWidths=[26, 144])
+        block.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        return block
+
+    card2_data = [
+        [
+            metric_sub_block("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
+            metric_sub_block("money.png", "FINAL AMOUNT", f"${total_amount}"),
+            metric_sub_block("clock.png", "AVG SESSION", f"{avg_session} hrs"),
+        ]
     ]
 
-    # Explicit, safe column boundaries to stop alignment/overlapping issues completely
-    right_stack_table = Table(right_cards_data, colWidths=[28, 112, 100], rowHeights=[36.66]*3)
-    right_stack_table.setStyle(
+    card2_table = Table(card2_data, colWidths=[171, 171, 172], rowHeights=[42])
+    card2_table.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("BACKGROUND", (0, 0), (-1, -1), _hex(LIGHT_BG)),
                 ("GRID", (0, 0), (-1, -1), 0.4, _hex(BORDER_CLR)),
-                ("ALIGN", (0, 0), (0, -1), "LEFT"),       # Keep icons strictly aligned left
-                ("LEFTPADDING", (0, 0), (0, -1), 10),     # Safe left margin for icons away from card boundary
-                ("LEFTPADDING", (1, 0), (1, -1), 2),      # Label starting distance
-                ("RIGHTPADDING", (2, 0), (2, -1), 12),    # Safe padding buffer on right side for values
+                ("LEFTPADDING", (0, 0), (-1, -1), 14),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 14),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
 
-    # MASTER WRAPPER: Explicit 15pt gutter column space separation
-    summary_section = Table(
-        [[left_meta_table, "", right_stack_table]],
-        colWidths=[240, 15, 240]
-    )
-    summary_section.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
-
-    outer_summary_card = Table([[summary_section]], colWidths=[PAGE_W])
-    outer_summary_card.setStyle(
+    # Wrap Card 2 in structural outer framework container extending to page edges
+    outer_card2 = Table([[card2_table]], colWidths=[PAGE_W])
+    outer_card2.setStyle(
         TableStyle(
             [
                 ("BOX", (0, 0), (-1, -1), 1, _hex(BORDER_CLR)),
                 ("BACKGROUND", (0, 0), (-1, -1), _hex(WHITE)),
-                ("TOPPADDING", (0, 0), (-1, -1), 12),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-                ("LEFTPADDING", (0, 0), (-1, -1), 12),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
             ]
         )
     )
-
-    elements.append(section_header("clipboard.png", "PROJECT SUMMARY"))
-    elements.append(Spacer(1, 6))
-    elements.append(outer_summary_card)
+    elements.append(outer_card2)
     elements.append(Spacer(1, 16))
 
     # ======================================================================

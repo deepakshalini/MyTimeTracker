@@ -247,9 +247,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     PAGE_W = A4[0] - 60
     HALF_COL_W = PAGE_W / 2
 
-    # Perfect Grid Alignment Math:
-    # 12pt clean gap gutter between columns. Left card gets full width minus 6.
-    # Right card gets full width minus 6, but indented inside its column by 12pt padding.
+    # 12pt clean gap gutter between side-by-side columns
     GUTTER = 12
     INNER_CARD_W = HALF_COL_W - (GUTTER / 2)
 
@@ -452,8 +450,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ]))
         return t
 
-    # Master alignment assembly: Left column starts at 0 padding. Right column applies
-    # exact gutter spacing via left-padding to keep outer borders flush globally.
+    # Structural alignment fix: Explicit structural grid rules applied to master cells
     two_col = Table([
         [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
          chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
@@ -461,10 +458,10 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     two_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (0, 0), 0),  # Left column hugs the absolute left margin boundary
+        ("LEFTPADDING", (0, 0), (0, 0), 0),  # Hugs the absolute left margin boundary
         ("RIGHTPADDING", (0, 0), (0, 0), 0),
-        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Right column shifts perfectly inline via clean gutter metrics
-        ("RIGHTPADDING", (1, 0), (1, 0), 0),  # Right card edge aligns perfectly flush with master boxes
+        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Shifts column right to form clean, symmetrical gutter spacing
+        ("RIGHTPADDING", (1, 0), (1, 0), 0),  # Aligns outer right edge flush with the main global boundaries
         ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))

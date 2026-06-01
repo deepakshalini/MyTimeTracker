@@ -8,19 +8,20 @@ from reportlab.platypus import (
     Flowable, HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 )
 
-# --- Configuration & Styling ---
+# Brand Color Palette
 PRIMARY = "#0F766E"
 LIGHT_GRAY = "#F9FAFB"
 BORDER_CLR = "#E5E7EB"
+TEXT = "#111827"
+SUBTEXT = "#4B5563"
 styles = getSampleStyleSheet()
 
 
-def get_style(font_size=9, color=colors.black, bold=False):
-    return ParagraphStyle("Custom", fontSize=font_size, textColor=color,
-                          fontName="Helvetica-Bold" if bold else "Helvetica")
+def get_style(size, color, bold=False, align="left"):
+    return ParagraphStyle("Custom", fontSize=size, textColor=color,
+                          fontName="Helvetica-Bold" if bold else "Helvetica", alignment=0 if align == "left" else 2)
 
 
-# --- UI Components ---
 def create_pill_badge(text, color_bg, color_txt):
     p = Paragraph(f'<para alignment="center"><font color="{color_txt}" size="8"><b>{text.upper()}</b></font></para>')
     t = Table([[p]], colWidths=[65])
@@ -33,7 +34,6 @@ def create_pill_badge(text, color_bg, color_txt):
     return t
 
 
-# --- Main Generation Logic ---
 def generate_pdf(filename, task, subtasks, total_hours, total_amount):
     doc = SimpleDocTemplate(filename, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=28, bottomMargin=28)
     elements = []
@@ -46,7 +46,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount):
     elements.append(HRFlowable(width="100%", thickness=2, color=PRIMARY))
     elements.append(Spacer(1, 15))
 
-    # Project Summary Table
+    # Project Summary (Precise Alignment)
     summary_data = [
         ["Client", task["client_name"], "Period", "19 May 2026-20 May 2026"],
         ["Project", task["task_name"], "Subtasks", str(len(subtasks))],
@@ -64,11 +64,16 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount):
     elements.append(summary_tbl)
     elements.append(Spacer(1, 20))
 
-    # Work Log Details Table
-    log_header = ["#", "SUBTASK", "DESCRIPTION", "START", "END", "DURATION"]
-    log_data = [[Paragraph(f'<b>{h}</b>', get_style(8, colors.white)) for h in log_header]]
+    # Work Log Details (Exact Header Match)
+    log_header = ["#", "SUBTASK", "DESCRIPTION", "START TIME", "END TIME", "DURATION"]
+    log_data = [[Paragraph(f'<b>{h}</b>', get_style(8, colors.white, True)) for h in log_header]]
+
     for i, s in enumerate(subtasks, 1):
-        log_data.append([str(i), s["subtask_name"], s["description"], s["start_time"], s["end_time"], s["duration"]])
+        # Calculate duration dynamically to avoid KeyError
+        secs = s.get("total_seconds", 0)
+        h, m = divmod(int(secs) // 60, 60)
+        dur = f"{h}h {m:02d}m"
+        log_data.append([str(i), s["subtask_name"], s["description"], s["start_time"], s["end_time"], dur])
 
     log_tbl = Table(log_data, colWidths=[20, 80, 180, 70, 70, 60])
     log_tbl.setStyle(TableStyle([

@@ -20,7 +20,7 @@ from utils import (
 
 
 st.set_page_config(
-    page_title="Time Tracker",
+    page_title="Deepak | Time Tracker",
     layout="wide"
 )
 

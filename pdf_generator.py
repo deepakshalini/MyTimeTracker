@@ -294,7 +294,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     period_str = f"{period_start} – {period_end}"
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    # Perfectly flush zero-padding alignment block
     elements.append(section_header("clipboard.png", "PROJECT SUMMARY", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
 
@@ -375,10 +374,12 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
     ]))
     elements.append(outer_card2)
-    elements.append(Spacer(1, 14))
+
+    # Premium Margin Upgrade: Increased from 14 to 26 before the Analytics section
+    elements.append(Spacer(1, 26))
 
     # ======================================================================
-    # ANALYTICS DASHBOARD (TWO-COLUMN HEADERS ALIGNED)
+    # ANALYTICS DASHBOARD
     # ======================================================================
     pie_colors = [PRIMARY, "#4ADE80", "#A7F3D0", "#0D9488", "#6EE7B7"]
     pie_slices = [(sub["subtask_name"], round((sub["total_seconds"] or 0) / 3600, 2), pie_colors[i % len(pie_colors)])
@@ -436,7 +437,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     ]))
 
     def chart_section(header_icon, header_title, card, width):
-        # Stripped extra internal padding to match global master alignment
         t_hdr = section_header(header_icon, header_title, width=width - 24)
         t = Table([[t_hdr], [Spacer(1, 4)], [card]], colWidths=[width])
         t.setStyle(TableStyle([
@@ -460,7 +460,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(two_col)
-    elements.append(Spacer(1, 14))
+
+    # Premium Margin Upgrade: Increased from 14 to 26 before Productivity Insights
+    elements.append(Spacer(1, 26))
 
     # ======================================================================
     # PRODUCTIVITY INSIGHTS BANNER
@@ -495,7 +497,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(section_header("chart.png", "PRODUCTIVITY INSIGHTS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
     elements.append(insights_row)
-    elements.append(Spacer(1, 14))
+
+    # Premium Margin Upgrade: Increased from 14 to 26 before Work Log Details
+    elements.append(Spacer(1, 26))
 
     # ======================================================================
     # PREMIUM WORK LOG DETAILS TABLE
@@ -557,7 +561,9 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     table.setStyle(TableStyle(tbl_style))
     elements.append(table)
-    elements.append(Spacer(1, 16))
+
+    # Premium Margin Upgrade: Balanced buffer space after the main details table
+    elements.append(Spacer(1, 26))
 
     # ======================================================================
     # KEY DELIVERABLES SECTION
@@ -588,7 +594,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
             ("LEFTPADDING", (0, 0), (-1, -1), 10),
         ]))
         elements.append(del_card)
-        elements.append(Spacer(1, 16))
+        elements.append(Spacer(1, 26))
 
     # ======================================================================
     # CLOSING / THANK YOU BANNER

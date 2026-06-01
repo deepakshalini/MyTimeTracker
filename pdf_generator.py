@@ -8,7 +8,6 @@ from reportlab.graphics.shapes import Circle, Drawing, Line, Rect, String, Wedge
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import mm
 from reportlab.platypus import (
     Flowable,
     HRFlowable,
@@ -494,23 +493,22 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 14))
 
     # ======================================================================
-    # PREMIUM WORK LOG DETAILS TABLE (RE-STYLED LOGIC)
+    # PREMIUM WORK LOG DETAILS TABLE (HOURS REMOVED & SPACE REALLOCATED)
     # ======================================================================
     elements.append(section_header("clipboard.png", "WORK LOG DETAILS"))
     elements.append(Spacer(1, 6))
 
-    # Custom typography mapping for clean crisp cell rendering
     lbl_hdr = lambda txt, align="LEFT": Paragraph(f'<font color="{SUBTEXT}"><b>{txt.upper()}</b></font>',
                                                   ParagraphStyle("h", parent=body_style, fontSize=7.5,
                                                                  alignment=0 if align == "LEFT" else 2))
 
+    # "Hours" has been entirely stripped here
     header_row = [lbl_hdr("#"), lbl_hdr("Subtask"), lbl_hdr("Description"), lbl_hdr("Start Time"), lbl_hdr("End Time"),
-                  lbl_hdr("Duration", "RIGHT"), lbl_hdr("Hours", "RIGHT")]
+                  lbl_hdr("Duration", "RIGHT")]
     data = [header_row]
 
     for index, sub in enumerate(sorted_subs, start=1):
         secs = sub["total_seconds"] or 0
-        hrs = round(secs / 3600, 2)
         h, m = divmod(int(secs) // 60, 60)
         duration_str = f"{h}h {m:02d}m"
 
@@ -524,37 +522,35 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
             Paragraph(start_str, body_style),
             Paragraph(end_str, body_style),
             Paragraph(duration_str, body_right),
-            Paragraph(f"{hrs:.2f}", body_right),
         ])
 
-    # Premium minimal anchors for the Total summary
+    # Premium minimal anchors for the Total Summary row
     data.append([
-        "", "", "", "", "",
-        Paragraph(f'<font size=9 color="{PRIMARY}"><b>TOTAL HOURS</b></font>', body_right),
-        Paragraph(f'<font size=9 color="{PRIMARY}"><b>{total_hours:.2f}</b></font>', body_right),
+        "", "", "", "",
+        Paragraph(f'<font size=9 color="{PRIMARY}"><b>TOTAL DURATION</b></font>', body_right),
+        Paragraph(
+            f'<font size=9 color="{PRIMARY}"><b>{int(total_hours)}h {int((total_hours % 1) * 60):02d}m</b></font>',
+            body_right),
     ])
 
-    col_widths = [20, 84, 138, 65, 65, 54, 44]
+    # Perfect layout alignment totaling exactly 470 points across components
+    col_widths = [20, 90, 176, 65, 65, 54]
     table = Table(data, colWidths=col_widths)
 
     tbl_style = [
-        # Crisp bottom border accent line right underneath header labels
         ("LINEBELOW", (0, 0), (-1, 0), 1, colors.HexColor(PRIMARY)),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 10),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-
-        # Structure rules separating raw data rows horizontally (No box layout grid strings)
         ("LINEBELOW", (0, 1), (-1, -2), 0.4, colors.HexColor(LIGHT_BORDER_MUTE)),
 
-        # Clean double underline highlight logic for totals anchor
-        ("LINEABOVE", (5, -1), (6, -1), 1, colors.HexColor(PRIMARY)),
-        ("LINEBELOW", (5, -1), (6, -1), 1.5, colors.HexColor(PRIMARY)),
+        # Bottom highlights mapped seamlessly across the final columns
+        ("LINEABOVE", (4, -1), (5, -1), 1, colors.HexColor(PRIMARY)),
+        ("LINEBELOW", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
     ]
 
-    # Alternate crisp row tints without full border block color shapes
     for row in range(1, len(data) - 1):
         if row % 2 != 0:
             tbl_style.append(("BACKGROUND", (0, row), (-1, row), colors.HexColor(STRIPE_ROW)))

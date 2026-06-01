@@ -323,10 +323,7 @@ def generate_pdf(
     elements.append(Spacer(1, 6))
 
     # ----------------------------------------------------------------------
-    # 1st CARD: Meta Data Grid (Full Width Alignment)
-    # ----------------------------------------------------------------------
-    # ----------------------------------------------------------------------
-    # 1st CARD: Meta Data Grid (Full Width Alignment)
+    # 1st CARD: Meta Data Grid (Full Width Alignment - 3 Rows Fixed)
     # ----------------------------------------------------------------------
     def meta_item(icon_name, label, value):
         return [
@@ -346,7 +343,7 @@ def generate_pdf(
         meta_item("subtask.png", "Subtasks Completed", str(len(subtasks))) + ["", ""],
     ]
 
-    # CHANGED: Adjusted rowHeights to cover 3 rows instead of 2 to fix the ValueError
+    # Adjusted rowHeights to cover 3 rows instead of 2 to fix the ValueError
     card1_table = Table(
         card1_data, colWidths=[110, 147, 110, 147], rowHeights=[22, 22, 22]
     )
@@ -359,8 +356,8 @@ def generate_pdf(
                 ("BACKGROUND", (2, 0), (2, -1), _hex(LIGHT_BG)),
                 ("BACKGROUND", (1, 0), (1, -1), _hex(WHITE)),
                 ("BACKGROUND", (3, 0), (3, -1), _hex(WHITE)),
-                ("SPAN", (2, 1), (3, 1)),  # Keep merged remaining empty space cell clean
-                ("BACKGROUND", (2, 1), (3, 1), _hex(WHITE)),
+                ("SPAN", (2, 2), (3, 2)),  # Cleanly spans trailing white spaces on Row 3
+                ("BACKGROUND", (2, 2), (3, 2), _hex(WHITE)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),

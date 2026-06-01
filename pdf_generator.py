@@ -325,6 +325,9 @@ def generate_pdf(
     # ----------------------------------------------------------------------
     # 1st CARD: Meta Data Grid (Full Width Alignment)
     # ----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
+    # 1st CARD: Meta Data Grid (Full Width Alignment)
+    # ----------------------------------------------------------------------
     def meta_item(icon_name, label, value):
         return [
             Table(
@@ -334,17 +337,18 @@ def generate_pdf(
             Paragraph(value, body_style),
         ]
 
-    # Arranged horizontally into columns across the full card width
+    # Arranged horizontally into columns across the full card width (3 rows total)
     card1_data = [
         meta_item("user.png", "Client", task["client_name"])
         + meta_item("calendar.png", "Period", period_str),
         meta_item("work.png", "Project", task["task_name"])
         + meta_item("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
-        meta_item("subtask.png", "Subtasks", str(len(subtasks))) + ["", ""],
+        meta_item("subtask.png", "Subtasks Completed", str(len(subtasks))) + ["", ""],
     ]
 
+    # CHANGED: Adjusted rowHeights to cover 3 rows instead of 2 to fix the ValueError
     card1_table = Table(
-        card1_data, colWidths=[110, 147, 110, 147], rowHeights=[22, 22]
+        card1_data, colWidths=[110, 147, 110, 147], rowHeights=[22, 22, 22]
     )
     card1_table.setStyle(
         TableStyle(
@@ -355,7 +359,7 @@ def generate_pdf(
                 ("BACKGROUND", (2, 0), (2, -1), _hex(LIGHT_BG)),
                 ("BACKGROUND", (1, 0), (1, -1), _hex(WHITE)),
                 ("BACKGROUND", (3, 0), (3, -1), _hex(WHITE)),
-                ("SPAN", (2, 1), (3, 1)),  # Merge remaining empty space cell cleanly
+                ("SPAN", (2, 1), (3, 1)),  # Keep merged remaining empty space cell clean
                 ("BACKGROUND", (2, 1), (3, 1), _hex(WHITE)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),

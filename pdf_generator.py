@@ -121,17 +121,20 @@ def status_badge(text, style_type="success"):
     return t
 
 
-def section_header(icon_name, title_text, icon_size=18):
+def section_header(icon_name, title_text, width=430, icon_size=16):
+    """Generates a section header with explicit zero left-padding to ensure perfect global alignment."""
     ico = icon(icon_name, icon_size)
     para = Paragraph(
         f'<font size=11 color="{PRIMARY}"><b>{title_text}</b></font>',
         styles["Heading2"],
     )
-    t = Table([[ico, para]], colWidths=[24, 430])
+    t = Table([[ico, para]], colWidths=[24, width])
     t.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
     ]))
     return t
 
@@ -291,7 +294,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     period_str = f"{period_start} – {period_end}"
     avg_session = round(total_hours / len(subtasks), 2) if subtasks else 0
 
-    elements.append(section_header("clipboard.png", "PROJECT SUMMARY"))
+    # Perfectly flush zero-padding alignment block
+    elements.append(section_header("clipboard.png", "PROJECT SUMMARY", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
 
     def meta_item(icon_flowable, label, value_flowable):
@@ -374,7 +378,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 14))
 
     # ======================================================================
-    # ANALYTICS DASHBOARD
+    # ANALYTICS DASHBOARD (TWO-COLUMN HEADERS ALIGNED)
     # ======================================================================
     pie_colors = [PRIMARY, "#4ADE80", "#A7F3D0", "#0D9488", "#6EE7B7"]
     pie_slices = [(sub["subtask_name"], round((sub["total_seconds"] or 0) / 3600, 2), pie_colors[i % len(pie_colors)])
@@ -432,7 +436,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     ]))
 
     def chart_section(header_icon, header_title, card, width):
-        t_hdr = section_header(header_icon, header_title, 16)
+        # Stripped extra internal padding to match global master alignment
+        t_hdr = section_header(header_icon, header_title, width=width - 24)
         t = Table([[t_hdr], [Spacer(1, 4)], [card]], colWidths=[width])
         t.setStyle(TableStyle([
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -443,8 +448,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         return t
 
     two_col = Table([
-        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
-         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
+        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, HALF_COL_W),
+         chart_section("calendar.png", "WORK TIMELINE", timeline_card, HALF_COL_W)]
     ], colWidths=[HALF_COL_W, HALF_COL_W])
 
     two_col.setStyle(TableStyle([
@@ -487,22 +492,21 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("LINEABOVE", (0, 0), (-1, -1), 1.5, colors.HexColor(PRIMARY)),
     ]))
 
-    elements.append(section_header("chart.png", "PRODUCTIVITY INSIGHTS"))
+    elements.append(section_header("chart.png", "PRODUCTIVITY INSIGHTS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
     elements.append(insights_row)
     elements.append(Spacer(1, 14))
 
     # ======================================================================
-    # PREMIUM WORK LOG DETAILS TABLE (HOURS REMOVED & SPACE REALLOCATED)
+    # PREMIUM WORK LOG DETAILS TABLE
     # ======================================================================
-    elements.append(section_header("clipboard.png", "WORK LOG DETAILS"))
+    elements.append(section_header("clipboard.png", "WORK LOG DETAILS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
 
     lbl_hdr = lambda txt, align="LEFT": Paragraph(f'<font color="{SUBTEXT}"><b>{txt.upper()}</b></font>',
                                                   ParagraphStyle("h", parent=body_style, fontSize=7.5,
                                                                  alignment=0 if align == "LEFT" else 2))
 
-    # "Hours" has been entirely stripped here
     header_row = [lbl_hdr("#"), lbl_hdr("Subtask"), lbl_hdr("Description"), lbl_hdr("Start Time"), lbl_hdr("End Time"),
                   lbl_hdr("Duration", "RIGHT")]
     data = [header_row]
@@ -524,7 +528,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
             Paragraph(duration_str, body_right),
         ])
 
-    # Premium minimal anchors for the Total Summary row
     data.append([
         "", "", "", "",
         Paragraph(f'<font size=9 color="{PRIMARY}"><b>TOTAL DURATION</b></font>', body_right),
@@ -533,7 +536,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
             body_right),
     ])
 
-    # Perfect layout alignment totaling exactly 470 points across components
     col_widths = [20, 90, 176, 65, 65, 54]
     table = Table(data, colWidths=col_widths)
 
@@ -545,8 +547,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ("RIGHTPADDING", (0, 0), (-1, -1), 4),
         ("LINEBELOW", (0, 1), (-1, -2), 0.4, colors.HexColor(LIGHT_BORDER_MUTE)),
-
-        # Bottom highlights mapped seamlessly across the final columns
         ("LINEABOVE", (4, -1), (5, -1), 1, colors.HexColor(PRIMARY)),
         ("LINEBELOW", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
     ]
@@ -563,7 +563,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     # KEY DELIVERABLES SECTION
     # ======================================================================
     if deliverables:
-        elements.append(section_header("check.png", "KEY DELIVERABLES"))
+        elements.append(section_header("check.png", "KEY DELIVERABLES", width=PAGE_W - 24))
         elements.append(Spacer(1, 6))
 
         half = len(deliverables) // 2 + len(deliverables) % 2

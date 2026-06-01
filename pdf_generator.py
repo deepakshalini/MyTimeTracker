@@ -323,7 +323,7 @@ def generate_pdf(
     elements.append(Spacer(1, 6))
 
     # ----------------------------------------------------------------------
-    # 1st CARD: Meta Data Grid (Restructured Matrix with Payment Status)
+    # 1st CARD: Meta Data Grid (Interchanged Subtasks & Hourly Rate)
     # ----------------------------------------------------------------------
     def meta_item(icon_name, label, value):
         return [
@@ -334,13 +334,12 @@ def generate_pdf(
             Paragraph(value, body_style),
         ]
 
-    # Balanced grid tracking layout
     card1_data = [
         meta_item("user.png", "Client", task["client_name"])
         + meta_item("calendar.png", "Period", period_str),
         meta_item("work.png", "Project", task["task_name"])
-        + meta_item("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
-        meta_item("subtask.png", "Subtasks", str(len(subtasks)))
+        + meta_item("subtask.png", "Subtasks", str(len(subtasks))),
+        meta_item("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr")
         + meta_item("money.png", "Payment Status", "Pending"),
     ]
 

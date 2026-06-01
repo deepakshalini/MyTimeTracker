@@ -194,8 +194,8 @@ class HBarChart(Flowable):
 
     def draw(self):
         c = self.canv
-        bar_area_w = self.width - 80
-        left_off = 65
+        bar_area_w = self.width - 72
+        left_off = 58
         row_h = (self.height - 15) / len(self.data)
         bar_h = row_h * 0.45
 
@@ -246,7 +246,12 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements = []
     PAGE_W = A4[0] - 60
     HALF_COL_W = PAGE_W / 2
-    INNER_CARD_W = HALF_COL_W - 4
+
+    # Perfect Grid Alignment Math:
+    # 12pt clean gap gutter between columns. Left card gets full width minus 6.
+    # Right card gets full width minus 6, but indented inside its column by 12pt padding.
+    GUTTER = 12
+    INNER_CARD_W = HALF_COL_W - (GUTTER / 2)
 
     now_str = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y %I:%M %p")
 
@@ -374,13 +379,12 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
     ]))
     elements.append(outer_card2)
-
-    # Premium Margin Upgrade: Increased from 14 to 26 before the Analytics section
     elements.append(Spacer(1, 26))
 
     # ======================================================================
-    # ANALYTICS DASHBOARD
+    # ANALYTICS DASHBOARD (TWO COLUMN SIDE-BY-SIDE)
     # ======================================================================
+    # 1. Left Hand Column - Work Distribution
     pie_colors = [PRIMARY, "#4ADE80", "#A7F3D0", "#0D9488", "#6EE7B7"]
     pie_slices = [(sub["subtask_name"], round((sub["total_seconds"] or 0) / 3600, 2), pie_colors[i % len(pie_colors)])
                   for i, sub in enumerate(sorted_subs)]
@@ -416,6 +420,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 4)
     ]))
 
+    # 2. Right Hand Column - Work Timeline
     day_hours = {}
     for sub in sorted_subs:
         day = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y")
@@ -447,21 +452,23 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ]))
         return t
 
+    # Master alignment assembly: Left column starts at 0 padding. Right column applies
+    # exact gutter spacing via left-padding to keep outer borders flush globally.
     two_col = Table([
-        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, HALF_COL_W),
-         chart_section("calendar.png", "WORK TIMELINE", timeline_card, HALF_COL_W)]
+        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
+         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
     ], colWidths=[HALF_COL_W, HALF_COL_W])
 
     two_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (0, 0), 0),  # Left column hugs the absolute left margin boundary
+        ("RIGHTPADDING", (0, 0), (0, 0), 0),
+        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Right column shifts perfectly inline via clean gutter metrics
+        ("RIGHTPADDING", (1, 0), (1, 0), 0),  # Right card edge aligns perfectly flush with master boxes
         ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
     elements.append(two_col)
-
-    # Premium Margin Upgrade: Increased from 14 to 26 before Productivity Insights
     elements.append(Spacer(1, 26))
 
     # ======================================================================
@@ -497,8 +504,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(section_header("chart.png", "PRODUCTIVITY INSIGHTS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
     elements.append(insights_row)
-
-    # Premium Margin Upgrade: Increased from 14 to 26 before Work Log Details
     elements.append(Spacer(1, 26))
 
     # ======================================================================
@@ -561,8 +566,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     table.setStyle(TableStyle(tbl_style))
     elements.append(table)
-
-    # Premium Margin Upgrade: Balanced buffer space after the main details table
     elements.append(Spacer(1, 26))
 
     # ======================================================================

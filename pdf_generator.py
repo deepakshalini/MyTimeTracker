@@ -323,7 +323,7 @@ def generate_pdf(
     elements.append(Spacer(1, 6))
 
     # ----------------------------------------------------------------------
-    # 1st CARD: Meta Data Grid (Full Width Alignment - 3 Rows Fixed)
+    # 1st CARD: Meta Data Grid (Restructured Matrix with Payment Status)
     # ----------------------------------------------------------------------
     def meta_item(icon_name, label, value):
         return [
@@ -334,16 +334,16 @@ def generate_pdf(
             Paragraph(value, body_style),
         ]
 
-    # Arranged horizontally into columns across the full card width (3 rows total)
+    # Balanced grid tracking layout
     card1_data = [
         meta_item("user.png", "Client", task["client_name"])
         + meta_item("calendar.png", "Period", period_str),
         meta_item("work.png", "Project", task["task_name"])
         + meta_item("money.png", "Hourly Rate", f"${task['hourly_rate']:.2f} /hr"),
-        meta_item("subtask.png", "Subtasks Completed", str(len(subtasks))) + ["", ""],
+        meta_item("subtask.png", "Subtasks", str(len(subtasks)))
+        + meta_item("money.png", "Payment Status", "Pending"),
     ]
 
-    # Adjusted rowHeights to cover 3 rows instead of 2 to fix the ValueError
     card1_table = Table(
         card1_data, colWidths=[110, 147, 110, 147], rowHeights=[22, 22, 22]
     )
@@ -356,8 +356,6 @@ def generate_pdf(
                 ("BACKGROUND", (2, 0), (2, -1), _hex(LIGHT_BG)),
                 ("BACKGROUND", (1, 0), (1, -1), _hex(WHITE)),
                 ("BACKGROUND", (3, 0), (3, -1), _hex(WHITE)),
-                ("SPAN", (2, 2), (3, 2)),  # Cleanly spans trailing white spaces on Row 3
-                ("BACKGROUND", (2, 2), (3, 2), _hex(WHITE)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
@@ -366,7 +364,6 @@ def generate_pdf(
         )
     )
 
-    # Wrap Card 1 in container matching the charts below perfectly
     outer_card1 = Table([[card1_table]], colWidths=[PAGE_W])
     outer_card1.setStyle(
         TableStyle(
@@ -381,7 +378,7 @@ def generate_pdf(
         )
     )
     elements.append(outer_card1)
-    elements.append(Spacer(1, 10))  # Margin gap directly between Card 1 and Card 2
+    elements.append(Spacer(1, 10))
 
     # ----------------------------------------------------------------------
     # 2nd CARD: Metric Layout Stack (icon | Key over Value)
@@ -396,7 +393,6 @@ def generate_pdf(
             styles["BodyText"],
         )
 
-        # Right side: Stacked content element block
         text_stack = Table([[lbl], [Spacer(1, 2)], [val]], colWidths=[140])
         text_stack.setStyle(
             TableStyle(
@@ -410,7 +406,6 @@ def generate_pdf(
             )
         )
 
-        # Full horizontal combo matching requested architecture template [icon | content]
         block = Table([[icon(icon_name, 18), text_stack]], colWidths=[26, 144])
         block.setStyle(
             TableStyle(
@@ -446,7 +441,6 @@ def generate_pdf(
         )
     )
 
-    # Wrap Card 2 in structural outer framework container extending to page edges
     outer_card2 = Table([[card2_table]], colWidths=[PAGE_W])
     outer_card2.setStyle(
         TableStyle(

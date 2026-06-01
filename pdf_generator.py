@@ -498,56 +498,55 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 26))
 
     # ======================================================================
-    # PREMIUM WORK LOG DETAILS TABLE
+    # PREMIUM WORK LOG DETAILS TABLE (Rectified for Alignment & Professional Header)
     # ======================================================================
     elements.append(section_header("clipboard.png", "WORK LOG DETAILS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
 
-    lbl_hdr = lambda txt, align="LEFT": Paragraph(f'<font color="{SUBTEXT}"><b>{txt.upper()}</b></font>',
+    # Professional Header Style: Using a slightly darker, premium teal
+    HEADER_BG = "#0D5C56"
+    lbl_hdr = lambda txt, align="LEFT": Paragraph(f'<font color="white"><b>{txt.upper()}</b></font>',
                                                   ParagraphStyle("h", parent=body_style, fontSize=7.5,
+                                                                 textColor="white",
                                                                  alignment=0 if align == "LEFT" else 2))
 
-    header_row = [lbl_hdr("#"), lbl_hdr("Subtask"), lbl_hdr("Description"), lbl_hdr("Start Time"), lbl_hdr("End Time"),
+    header_row = [lbl_hdr("#"), lbl_hdr("Subtask"), lbl_hdr("Description"), lbl_hdr("Start"), lbl_hdr("End"),
                   lbl_hdr("Duration", "RIGHT")]
     data = [header_row]
 
     for index, sub in enumerate(sorted_subs, start=1):
         secs = sub["total_seconds"] or 0
         h, m = divmod(int(secs) // 60, 60)
-        duration_str = f"{h}h {m:02d}m"
-
-        start_str = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y\n%I:%M %p")
-        end_str = datetime.strptime(sub["end_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y\n%I:%M %p")
-
         data.append([
             Paragraph(f'<font color="{SUBTEXT}">{index}</font>', body_style),
             Paragraph(sub["subtask_name"], body_subtask),
             Paragraph(sub["description"], body_desc),
-            Paragraph(start_str, body_style),
-            Paragraph(end_str, body_style),
-            Paragraph(duration_str, body_right),
+            Paragraph(datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b\n%I:%M %p"),
+                      body_style),
+            Paragraph(datetime.strptime(sub["end_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b\n%I:%M %p"), body_style),
+            Paragraph(f"{h}h {m:02d}m", body_right),
         ])
 
-    data.append([
-        "", "", "", "",
-        Paragraph(f'<font size=9 color="{PRIMARY}"><b>TOTAL DURATION</b></font>', body_right),
-        Paragraph(
-            f'<font size=9 color="{PRIMARY}"><b>{int(total_hours)}h {int((total_hours % 1) * 60):02d}m</b></font>',
-            body_right),
-    ])
+    # Total Row
+    data.append(["", "", "", "", Paragraph(f'<font size=9 color="{PRIMARY}"><b>TOTAL</b></font>', body_right),
+                 Paragraph(
+                     f'<font size=9 color="{PRIMARY}"><b>{int(total_hours)}h {int((total_hours % 1) * 60):02d}m</b></font>',
+                     body_right)])
 
-    col_widths = [20, 90, 176, 65, 65, 54]
-    table = Table(data, colWidths=col_widths)
+    # ALIGNMENT FIX: Use percentages of PAGE_W to guarantee it matches card width perfectly
+    table = Table(data,
+                  colWidths=[PAGE_W * 0.05, PAGE_W * 0.15, PAGE_W * 0.35, PAGE_W * 0.15, PAGE_W * 0.15, PAGE_W * 0.15])
 
     tbl_style = [
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(PRIMARY)),
-        ("LINEBELOW", (0, 0), (-1, 0), 1.5, colors.white),  # Added border to header
-        ("GRID", (0, 1), (-1, -1), 0.5, colors.HexColor(LIGHT_BORDER_MUTE)),  # Ensure uniform grid
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(HEADER_BG)),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        # Professional Grid: Muted lines between data rows, none in total row
+        ("GRID", (0, 1), (-1, -2), 0.5, colors.HexColor(LIGHT_BORDER_MUTE)),
+        # Specific formatting for the Total row border
+        ("LINEABOVE", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
+        ("LINEBELOW", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
     ]
 
     for row in range(1, len(data) - 1):
@@ -556,7 +555,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     table.setStyle(TableStyle(tbl_style))
     elements.append(table)
-    elements.append(Spacer(1, 26))
+
 
     # ======================================================================
     # KEY DELIVERABLES SECTION

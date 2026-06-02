@@ -103,12 +103,18 @@ def client_avatar(name, size=18):
 def status_badge(text, style_type="success"):
     bg = BADGE_GREEN if style_type == "success" else BADGE_AMBER
     txt_clr = BADGE_TEXT if style_type == "success" else BADGE_AMBER_TXT
-    # Using a larger ROUNDEDCORNERS radius and centered alignment
-    t = Table([[Paragraph(f'<para alignment="center"><font size=8 color="{txt_clr}"><b>{text.upper()}</b></font></para>', styles["BodyText"])]], colWidths=[65])
+
+    # Use Paragraph with centered alignment inside a Table
+    p = Paragraph(f'<para alignment="center"><font size=8 color="{txt_clr}"><b>{text.upper()}</b></font></para>',
+                  styles["BodyText"])
+
+    # Table with rounded corners for the pill shape
+    t = Table([[p]], colWidths=[65])
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(bg)),
-        ("ROUNDEDCORNERS", [12, 12, 12, 12]), # Higher radius for pill look
+        ("ROUNDEDCORNERS", [12, 12, 12, 12]),  # Forces rounded pill corners
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),  # Centers text
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
@@ -450,15 +456,17 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
          chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
     ], colWidths=[HALF_COL_W, HALF_COL_W])
 
+    # Apply strict padding to ensure they hug the margins identically
     two_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (0, 0), 0),  # Hugs the absolute left margin boundary
+        ("LEFTPADDING", (0, 0), (0, 0), 0),
         ("RIGHTPADDING", (0, 0), (0, 0), 0),
-        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Shifts column right to form clean, symmetrical gutter spacing
-        ("RIGHTPADDING", (1, 0), (1, 0), 0),  # Aligns outer right edge flush with the main global boundaries
+        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Aligns right column to the gutter
+        ("RIGHTPADDING", (1, 0), (1, 0), 0),
         ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
+
     elements.append(two_col)
     elements.append(Spacer(1, 26))
 

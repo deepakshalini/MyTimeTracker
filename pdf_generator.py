@@ -43,12 +43,23 @@ ASSETS = BASE_DIR / "assets"
 styles = getSampleStyleSheet()
 
 # Re-usable Typography Hierarchies
+
+# Header style using bold for emphasis
+header_style = ParagraphStyle(
+    "header_custom",
+    parent=styles["Heading2"],
+    fontName="Helvetica-Bold",
+    fontSize=10,
+    textColor=colors.white
+)
+
 body_style = ParagraphStyle(
     "body_custom",
     parent=styles["BodyText"],
+    fontName="Helvetica",
     fontSize=9,
     leading=14,
-    textColor=colors.HexColor(TEXT),
+    textColor=colors.HexColor(TEXT)
 )
 
 body_subtask = ParagraphStyle(
@@ -439,9 +450,13 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 4)
     ]))
 
-    def chart_section(header_icon, header_title, card, width):
+    def chart_section(header_icon, header_title, card, width, min_height=None):
         t_hdr = section_header(header_icon, header_title, width=width - 24)
-        t = Table([[t_hdr], [Spacer(1, 4)], [card]], colWidths=[width])
+        # Wrap the card in a table with a fixed height if provided
+        card_container = Table([[card]], rowHeights=[min_height] if min_height else None)
+        card_container.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+
+        t = Table([[t_hdr], [Spacer(1, 4)], [card_container]], colWidths=[width])
         t.setStyle(TableStyle([
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
@@ -451,17 +466,21 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         return t
 
     # Structural alignment fix: Explicit structural grid rules applied to master cells
+    # 1. Define the desired height for both cards
+    card_height = 240
+
+    # 2. Use the updated chart_section call with min_height
     two_col = Table([
-        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
-         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
+        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W, min_height=card_height),
+         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W, min_height=card_height)]
     ], colWidths=[HALF_COL_W, HALF_COL_W])
 
-    # Apply strict padding to ensure they hug the margins identically
+    # 3. Apply strict alignment rules
     two_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (0, 0), 0),
         ("RIGHTPADDING", (0, 0), (0, 0), 0),
-        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),  # Aligns right column to the gutter
+        ("LEFTPADDING", (1, 0), (1, 0), GUTTER),
         ("RIGHTPADDING", (1, 0), (1, 0), 0),
         ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
@@ -518,8 +537,15 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
                                                                  textColor="white",
                                                                  alignment=0 if align == "LEFT" else 2))
 
-    header_row = [lbl_hdr("#"), lbl_hdr("Subtask"), lbl_hdr("Description"), lbl_hdr("Start"), lbl_hdr("End"),
-                  lbl_hdr("Duration", "RIGHT")]
+    header_row = [
+        Paragraph("<b>#</b>", header_style),
+        Paragraph("<b>SUBTASK</b>", header_style),
+        Paragraph("<b>DESCRIPTION</b>", header_style),
+        Paragraph("<b>START</b>", header_style),
+        Paragraph("<b>END</b>", header_style),
+        Paragraph("<b>DURATION</b>", header_style, alignment=2)  # '2' is right-aligned
+    ]
+
     data = [header_row]
 
     for index, sub in enumerate(sorted_subs, start=1):
@@ -546,6 +572,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
                   colWidths=[PAGE_W * 0.05, PAGE_W * 0.15, PAGE_W * 0.35, PAGE_W * 0.15, PAGE_W * 0.15, PAGE_W * 0.15])
 
     tbl_style = [
+        ("ROUNDEDCORNERS", [10, 10, 0, 0]),
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(HEADER_BG)),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 8),

@@ -44,13 +44,20 @@ styles = getSampleStyleSheet()
 
 # Re-usable Typography Hierarchies
 
-# Header style using bold for emphasis
+# Professional Typography
 header_style = ParagraphStyle(
     "header_custom",
     parent=styles["Heading2"],
     fontName="Helvetica-Bold",
     fontSize=10,
     textColor=colors.white
+)
+
+# ADD THIS LINE:
+header_style_right = ParagraphStyle(
+    "header_custom_right",
+    parent=header_style,
+    alignment=2  # This sets the alignment
 )
 
 body_style = ParagraphStyle(
@@ -543,7 +550,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         Paragraph("<b>DESCRIPTION</b>", header_style),
         Paragraph("<b>START</b>", header_style),
         Paragraph("<b>END</b>", header_style),
-        Paragraph("<b>DURATION</b>", header_style, alignment=2)  # '2' is right-aligned
+        Paragraph("<b>DURATION</b>", header_style_right) # Use the right-aligned style instead
     ]
 
     data = [header_row]

@@ -53,11 +53,10 @@ header_style = ParagraphStyle(
     textColor=colors.white
 )
 
-# ADD THIS LINE:
 header_style_right = ParagraphStyle(
     "header_custom_right",
     parent=header_style,
-    alignment=2  # This sets the alignment
+    alignment=2  # Right-aligned
 )
 
 body_style = ParagraphStyle(
@@ -97,6 +96,17 @@ small_style = ParagraphStyle(
 
 
 # ---------------------------------------------------------------------------
+# Helper: Convert decimal hours → "Xh YYm" string
+# ---------------------------------------------------------------------------
+
+def hrs_to_hm(decimal_hours):
+    """Convert a decimal hour value (e.g. 5.5) to 'Xh YYm' format (e.g. '5h 30m')."""
+    total_minutes = round(decimal_hours * 60)
+    h, m = divmod(total_minutes, 60)
+    return f"{h}h {m:02d}m"
+
+
+# ---------------------------------------------------------------------------
 # Dynamic UI Component Generators
 # ---------------------------------------------------------------------------
 
@@ -122,17 +132,15 @@ def status_badge(text, style_type="success"):
     bg = BADGE_GREEN if style_type == "success" else BADGE_AMBER
     txt_clr = BADGE_TEXT if style_type == "success" else BADGE_AMBER_TXT
 
-    # Use Paragraph with centered alignment inside a Table
     p = Paragraph(f'<para alignment="center"><font size=8 color="{txt_clr}"><b>{text.upper()}</b></font></para>',
                   styles["BodyText"])
 
-    # Table with rounded corners for the pill shape
     t = Table([[p]], colWidths=[65])
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(bg)),
-        ("ROUNDEDCORNERS", [12, 12, 12, 12]),  # Forces rounded pill corners
+        ("ROUNDEDCORNERS", [12, 12, 12, 12]),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),  # Centers text
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
@@ -162,6 +170,11 @@ def section_header(icon_name, title_text, width=430, icon_size=16):
 # ---------------------------------------------------------------------------
 
 class PieChart(Flowable):
+    """
+    FIX: Removed percentage labels from inside the pie slices.
+    The legend already shows percentages — duplicate labels inside
+    narrow slices caused overlap and clutter.
+    """
     def __init__(self, slices, width=120, height=120):
         super().__init__()
         self.slices = slices
@@ -191,13 +204,9 @@ class PieChart(Flowable):
             p.close()
             c.drawPath(p, fill=1, stroke=1)
 
-            mid_angle = math.radians(start_deg - sweep / 2)
-            tx = cx + (r * 0.62) * math.cos(mid_angle)
-            ty = cy + (r * 0.62) * math.sin(mid_angle)
-            c.setFont("Helvetica-Bold", 8)
-            c.setFillColor(colors.white)
-            pct = f"{100 * value / total:.1f}%"
-            c.drawCentredString(tx, ty - 4, pct)
+            # FIX: Removed the percentage label drawn inside the slice.
+            # Previously this overlapped or looked redundant with the legend.
+
             start_deg -= sweep
 
 
@@ -265,7 +274,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     PAGE_W = A4[0] - 60
     HALF_COL_W = PAGE_W / 2
 
-    # 12pt clean gap gutter between side-by-side columns
     GUTTER = 12
     INNER_CARD_W = HALF_COL_W - (GUTTER / 2)
 
@@ -359,6 +367,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     # ======================================================================
     # KEY PERFORMANCE CORE METRICS
+    # FIX: Display hours in "Xh YYm" format consistently (not decimal hrs)
+    # FIX: Display total_amount with 2 decimal places (e.g. $49.50 not $49.5)
     # ======================================================================
     def metric_sub_block(icon_name, key_text, val_text):
         lbl = Paragraph(f'<font size=7.5 color="{PRIMARY}"><b>{key_text}</b></font>', styles["BodyText"])
@@ -371,10 +381,13 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         block.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
         return block
 
+    # FIX 1: total_hours displayed as "Xh YYm" instead of decimal
+    # FIX 2: total_amount formatted to 2 decimal places (e.g. $49.50)
+    # FIX 3: avg_session displayed as "Xh YYm" instead of decimal
     card2_table = Table([[
-        metric_sub_block("clock.png", "TOTAL HOURS", f"{total_hours} hrs"),
-        metric_sub_block("money.png", "FINAL AMOUNT", f"${total_amount}"),
-        metric_sub_block("clock.png", "AVG SESSION", f"{avg_session} hrs"),
+        metric_sub_block("clock.png", "TOTAL HOURS", hrs_to_hm(total_hours)),
+        metric_sub_block("money.png", "FINAL AMOUNT", f"${total_amount:.2f}"),
+        metric_sub_block("clock.png", "AVG SESSION", hrs_to_hm(avg_session)),
     ]], colWidths=[171, 171, 172], rowHeights=[40])
 
     card2_table.setStyle(TableStyle([
@@ -400,7 +413,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     # ======================================================================
     # ANALYTICS DASHBOARD (TWO COLUMN SIDE-BY-SIDE)
     # ======================================================================
-    # 1. Left Hand Column - Work Distribution
     pie_colors = [PRIMARY, "#4ADE80", "#A7F3D0", "#0D9488", "#6EE7B7"]
     pie_slices = [(sub["subtask_name"], round((sub["total_seconds"] or 0) / 3600, 2), pie_colors[i % len(pie_colors)])
                   for i, sub in enumerate(sorted_subs)]
@@ -436,7 +448,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 4)
     ]))
 
-    # 2. Right Hand Column - Work Timeline
     day_hours = {}
     for sub in sorted_subs:
         day = datetime.strptime(sub["start_time"], "%Y-%m-%d %H:%M:%S").strftime("%d %b %Y")
@@ -457,13 +468,15 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("RIGHTPADDING", (0, 0), (-1, -1), 4)
     ]))
 
-    def chart_section(header_icon, header_title, card, width, min_height=None):
+    def chart_section(header_icon, header_title, card, width):
+        """
+        FIX: Removed the min_height / card_container wrapper that was
+        injecting a fixed 240pt tall empty row — this was the root cause
+        of the large blank gap between the charts and Productivity Insights.
+        Cards now size naturally to their content.
+        """
         t_hdr = section_header(header_icon, header_title, width=width - 24)
-        # Wrap the card in a table with a fixed height if provided
-        card_container = Table([[card]], rowHeights=[min_height] if min_height else None)
-        card_container.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
-
-        t = Table([[t_hdr], [Spacer(1, 4)], [card_container]], colWidths=[width])
+        t = Table([[t_hdr], [Spacer(1, 4)], [card]], colWidths=[width])
         t.setStyle(TableStyle([
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
@@ -472,17 +485,11 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ]))
         return t
 
-    # Structural alignment fix: Explicit structural grid rules applied to master cells
-    # 1. Define the desired height for both cards
-    card_height = 240
-
-    # 2. Use the updated chart_section call with min_height
     two_col = Table([
-        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W, min_height=card_height),
-         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W, min_height=card_height)]
+        [chart_section("clipboard.png", "WORK DISTRIBUTION", dist_card, INNER_CARD_W),
+         chart_section("calendar.png", "WORK TIMELINE", timeline_card, INNER_CARD_W)]
     ], colWidths=[HALF_COL_W, HALF_COL_W])
 
-    # 3. Apply strict alignment rules
     two_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (0, 0), 0),
@@ -498,6 +505,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     # ======================================================================
     # PRODUCTIVITY INSIGHTS BANNER
+    # FIX: Display session durations in "Xh YYm" format (consistent with Work Log)
     # ======================================================================
     sessions = len(subtasks)
     all_secs = [(s["total_seconds"] or 0) for s in subtasks]
@@ -513,9 +521,10 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
                                ("BOTTOMPADDING", (0, 0), (-1, -1), 1), ("LEFTPADDING", (0, 0), (-1, -1), 2)]))
         return t
 
+    # FIX: Use hrs_to_hm() for consistent "Xh YYm" format
     insights_row = Table([[insight_text_cell("Total Sessions", str(sessions)),
-                           insight_text_cell("Longest Session", f"{longest_hrs} hrs"),
-                           insight_text_cell("Shortest Session", f"{shortest_hrs} hrs"),
+                           insight_text_cell("Longest Session", hrs_to_hm(longest_hrs)),
+                           insight_text_cell("Shortest Session", hrs_to_hm(shortest_hrs)),
                            insight_text_cell("Total Days Worked", str(days_worked))]], colWidths=[PAGE_W / 4] * 4)
     insights_row.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -532,12 +541,11 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     elements.append(Spacer(1, 26))
 
     # ======================================================================
-    # PREMIUM WORK LOG DETAILS TABLE (Rectified for Alignment & Professional Header)
+    # PREMIUM WORK LOG DETAILS TABLE
     # ======================================================================
     elements.append(section_header("clipboard.png", "WORK LOG DETAILS", width=PAGE_W - 24))
     elements.append(Spacer(1, 6))
 
-    # Professional Header Style: Using a slightly darker, premium teal
     HEADER_BG = "#0D5C56"
     lbl_hdr = lambda txt, align="LEFT": Paragraph(f'<font color="white"><b>{txt.upper()}</b></font>',
                                                   ParagraphStyle("h", parent=body_style, fontSize=7.5,
@@ -550,7 +558,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         Paragraph("<b>DESCRIPTION</b>", header_style),
         Paragraph("<b>START</b>", header_style),
         Paragraph("<b>END</b>", header_style),
-        Paragraph("<b>DURATION</b>", header_style_right) # Use the right-aligned style instead
+        Paragraph("<b>DURATION</b>", header_style_right)
     ]
 
     data = [header_row]
@@ -574,7 +582,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
                      f'<font size=9 color="{PRIMARY}"><b>{int(total_hours)}h {int((total_hours % 1) * 60):02d}m</b></font>',
                      body_right)])
 
-    # ALIGNMENT FIX: Use percentages of PAGE_W to guarantee it matches card width perfectly
     table = Table(data,
                   colWidths=[PAGE_W * 0.05, PAGE_W * 0.15, PAGE_W * 0.35, PAGE_W * 0.15, PAGE_W * 0.15, PAGE_W * 0.15])
 
@@ -584,9 +591,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-        # Professional Grid: Muted lines between data rows, none in total row
         ("GRID", (0, 1), (-1, -2), 0.5, colors.HexColor(LIGHT_BORDER_MUTE)),
-        # Specific formatting for the Total row border
         ("LINEABOVE", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
         ("LINEBELOW", (4, -1), (5, -1), 1.5, colors.HexColor(PRIMARY)),
     ]
@@ -597,7 +602,6 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     table.setStyle(TableStyle(tbl_style))
     elements.append(table)
-
 
     # ======================================================================
     # KEY DELIVERABLES SECTION

@@ -672,3 +672,59 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
 
     doc.build(elements)
     print(f"PDF successfully generated: {filename}")
+
+if __name__ == "__main__":
+
+    task = {
+        "client_name": "John Smith",
+        "task_name": "Ecommerce Product Bundling",
+        "hourly_rate": 15.0,
+        "prepared_by": "Deepak Soni"
+    }
+
+    subtasks = [
+        {
+            "subtask_name": "Image Processing",
+            "description": "Downloaded and optimized product images",
+            "start_time": "2026-06-01 09:00:00",
+            "end_time": "2026-06-01 11:30:00",
+            "total_seconds": 9000,
+        },
+        {
+            "subtask_name": "Nutrition Research",
+            "description": "Collected USDA nutritional values",
+            "start_time": "2026-06-02 10:00:00",
+            "end_time": "2026-06-02 13:00:00",
+            "total_seconds": 10800,
+        },
+        {
+            "subtask_name": "Content Generation",
+            "description": "Created descriptions and bullet points",
+            "start_time": "2026-06-03 14:00:00",
+            "end_time": "2026-06-03 17:30:00",
+            "total_seconds": 12600,
+        },
+    ]
+
+    deliverables = [
+        "Generated optimized product descriptions",
+        "Created marketing bullet points",
+        "Collected nutrition facts",
+        "Prepared image bundles",
+        "Verified product data",
+        "Exported final reports"
+    ]
+
+    total_hours = sum(s["total_seconds"] for s in subtasks) / 3600
+    total_amount = total_hours * task["hourly_rate"]
+
+    downloads = Path.home() / "Downloads"
+
+    generate_pdf(
+        filename= str(downloads/ "demo_report.pdf"),
+        task=task,
+        subtasks=subtasks,
+        total_hours=total_hours,
+        total_amount=total_amount,
+        deliverables=deliverables,
+    )

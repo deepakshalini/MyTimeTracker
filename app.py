@@ -142,7 +142,7 @@ else:
                 )
 
                 btn1.link_button(
-                    "🔍",
+                    "Task Detail",
                     detail_url,
                     use_container_width=True
                 )
@@ -164,7 +164,7 @@ else:
 
                 with open(pdf_file, "rb") as file:
                     btn2.download_button(
-                        "📝",
+                        "Download Report",
                         file,
                         file_name=pdf_file,
                         use_container_width=True,
@@ -174,7 +174,7 @@ else:
                 # ----------------- Delete Task -----------------
 
                 if btn3.button(
-                        "⛔",
+                        "Delete Task",
                         use_container_width=True,
                         key=f"delete_{task_id}"
                 ):

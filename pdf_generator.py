@@ -375,8 +375,8 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
     # FIX: Display total_amount with 2 decimal places (e.g. $49.50 not $49.5)
     # ======================================================================
     def metric_sub_block(icon_name, key_text, val_text):
-        lbl = Paragraph(f'<font size=7.5 color="{PRIMARY}"><b>{key_text}</b></font>', styles["BodyText"])
-        val = Paragraph(f'<font size=13 color="{TEXT}"><b>{val_text}</b></font>', styles["BodyText"])
+        lbl = Paragraph(f'<font size=9 color="{PRIMARY}"><b>{key_text}</b></font>', styles["BodyText"])
+        val = Paragraph(f'<font size=16 color="{TEXT}"><b>{val_text}</b></font>', styles["BodyText"])
         text_stack = Table([[lbl], [Spacer(1, 1)], [val]], colWidths=[140])
         text_stack.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
                                         ("TOPPADDING", (0, 0), (-1, -1), 0)]))

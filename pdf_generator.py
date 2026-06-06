@@ -381,7 +381,7 @@ def generate_pdf(filename, task, subtasks, total_hours, total_amount, report_id=
         text_stack.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
                                         ("TOPPADDING", (0, 0), (-1, -1), 0)]))
 
-        block = Table([[icon(icon_name, 20), text_stack]], colWidths=[30, 140])
+        block = Table([[icon(icon_name, 22), text_stack]], colWidths=[30, 140])
         block.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
         return block
 

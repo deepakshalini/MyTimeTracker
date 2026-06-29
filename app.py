@@ -154,21 +154,33 @@ else:
                     f"{task['task_name']}_Report.pdf"
                 ).replace(" ", "_")
 
-                generate_pdf(
-                    pdf_file,
-                    task,
-                    subtasks,
-                    total_hours,
-                    amount
-                )
+                if subtasks:
 
-                with open(pdf_file, "rb") as file:
-                    btn2.download_button(
-                        "Download Report",
-                        file,
-                        file_name=pdf_file,
+                    generate_pdf(
+                        pdf_file,
+                        task,
+                        subtasks,
+                        total_hours,
+                        amount
+                    )
+
+                    with open(pdf_file, "rb") as file:
+
+                        btn2.download_button(
+                            "Download Report",
+                            file,
+                            file_name=pdf_file,
+                            use_container_width=True,
+                            key=f"download_{task_id}"
+                        )
+
+                else:
+
+                    btn2.button(
+                        "No Report",
+                        disabled=True,
                         use_container_width=True,
-                        key=f"download_{task_id}"
+                        key=f"no_report_{task_id}"
                     )
 
                 # ----------------- Delete Task -----------------
